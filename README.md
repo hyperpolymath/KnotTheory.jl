@@ -23,6 +23,19 @@ println(crossing_number(k))
 - Simplification: basic Reidemeister I reduction.
 - Example knots: unknot, trefoil, figure-eight.
 
+## API Snapshot
+
+```julia
+Crossing, PlanarDiagram, DTCode, Knot, Link
+pdcode, dtcode, to_dowker
+crossing_number, writhe, linking_number
+seifert_circles, braid_index_estimate
+alexander_polynomial, jones_polynomial
+simplify_pd, r1_simplify
+knot_table, lookup_knot
+write_knot_json, read_knot_json
+```
+
 ## Development
 
 ```bash
