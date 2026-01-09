@@ -1,7 +1,7 @@
 # KnotTheory.jl
 
-KnotTheory.jl aims to provide a practical Julia toolkit for knot theory: data
-structures for knot diagrams, basic invariants, and utilities for exploration.
+KnotTheory.jl provides a practical Julia toolkit for knot theory: data
+structures for planar diagrams, basic invariants, and import/export helpers.
 This is an early scaffold intended to grow into a complete library.
 
 ## Quick Start
@@ -9,15 +9,16 @@ This is an early scaffold intended to grow into a complete library.
 ```julia
 using KnotTheory
 
-k = unknot()
-println(k)
+k = trefoil()
+println(crossing_number(k))
 ```
 
 ## Scope (initial)
 
-- Lightweight `Knot` representation and helpers.
-- Basic invariants (planned): crossing number, writhe, Alexander/Jones (TBD).
-- Diagram utilities (planned): Reidemeister moves and simplification.
+- Planar diagram model with crossings and components.
+- Import/export: PD code, DT code, and JSON.
+- Basic invariants: crossing number, writhe, linking number.
+- Example knots: unknot, trefoil, figure-eight.
 
 ## Development
 
