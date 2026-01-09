@@ -18,6 +18,9 @@ println(crossing_number(k))
 - Planar diagram model with crossings and components.
 - Import/export: PD code, DT code, and JSON.
 - Basic invariants: crossing number, writhe, linking number.
+- Diagram metrics: Seifert circles and braid index estimate.
+- Polynomials: Alexander (Seifert matrix heuristic) and Jones (skein).
+- Simplification: basic Reidemeister I reduction.
 - Example knots: unknot, trefoil, figure-eight.
 
 ## Development

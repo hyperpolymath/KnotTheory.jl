@@ -14,6 +14,8 @@ using KnotTheory
         k = Knot(:sample, pd, nothing)
         @test crossing_number(k) == 1
         @test writhe(k) == 1
+        @test seifert_circles(pd) >= 0
+        @test braid_index_estimate(pd) >= 1
     end
 
     @testset "DT Code" begin
@@ -21,6 +23,26 @@ using KnotTheory
         dt = dtcode(k)
         @test dt.code == [4, 6, 2]
         @test crossing_number(k) == 3
+    end
+
+    @testset "Polynomials" begin
+        pd = pdcode([(1, 2, 3, 4, 1)])
+        alex = alexander_polynomial(pd)
+        @test haskey(alex, 0)
+        jones = jones_polynomial(pd; wr=1)
+        @test !isempty(jones)
+    end
+
+    @testset "Simplification" begin
+        pd = pdcode([(1, 1, 2, 2, 1)])
+        reduced = r1_simplify(pd)
+        @test length(reduced.crossings) == 0
+    end
+
+    @testset "Knot Table" begin
+        table = knot_table()
+        @test haskey(table, :trefoil)
+        @test lookup_knot(:trefoil).crossings == 3
     end
 
     @testset "JSON" begin

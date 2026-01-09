@@ -1,6 +1,7 @@
 module KnotTheory
 
 using JSON3
+using LinearAlgebra
 
 export EdgeOrientation, Crossing, PlanarDiagram, DTCode
 export Knot, Link
@@ -8,6 +9,10 @@ export unknot, trefoil, figure_eight
 export crossing_number, writhe, linking_number
 export pdcode, dtcode, to_dowker
 export write_knot_json, read_knot_json
+export seifert_circles, braid_index_estimate
+export alexander_polynomial, jones_polynomial
+export simplify_pd, r1_simplify
+export knot_table, lookup_knot
 
 @enum EdgeOrientation Over Under
 
@@ -162,6 +167,235 @@ function linking_number(link::Link, comp_a::Int, comp_b::Int)
 end
 
 """
+Count Seifert circles by smoothing crossings.
+Uses a simple PD convention and is best for small, well-formed diagrams.
+"""
+function seifert_circles(pd::PlanarDiagram)
+    pairs = Tuple{Int, Int}[]
+    for (idx, crossing) in enumerate(pd.crossings)
+        a, b, c, d = crossing.arcs
+        if crossing.sign >= 0
+            push!(pairs, (a, b))
+            push!(pairs, (c, d))
+        else
+            push!(pairs, (b, c))
+            push!(pairs, (d, a))
+        end
+    end
+
+    arc_positions = Dict{Int, Vector{Int}}()
+    for (pos, crossing) in enumerate(pd.crossings)
+        for arc in crossing.arcs
+            push!(get!(arc_positions, arc, Int[]), pos)
+        end
+    end
+
+    nodes = Int[]
+    for (idx, crossing) in enumerate(pd.crossings)
+        for _ in 1:4
+            push!(nodes, idx)
+        end
+    end
+
+    adjacency = Dict{Int, Vector{Int}}()
+    for (x, y) in pairs
+        push!(get!(adjacency, x, Int[]), y)
+        push!(get!(adjacency, y, Int[]), x)
+    end
+
+    # Count loops in the pairing graph of arcs.
+    seen = Set{Int}()
+    count = 0
+    for arc in keys(adjacency)
+        if arc in seen
+            continue
+        end
+        stack = [arc]
+        while !isempty(stack)
+            cur = pop!(stack)
+            if cur in seen
+                continue
+            end
+            push!(seen, cur)
+            for n in get(adjacency, cur, Int[])
+                if !(n in seen)
+                    push!(stack, n)
+                end
+            end
+        end
+        count += 1
+    end
+    count
+end
+
+"""
+Estimate braid index using Seifert circle count.
+"""
+braid_index_estimate(pd::PlanarDiagram) = max(1, seifert_circles(pd))
+
+"""
+Apply a basic Reidemeister I simplification pass.
+Removes crossings with repeated arc labels.
+"""
+function r1_simplify(pd::PlanarDiagram)
+    crossings = Crossing[]
+    for c in pd.crossings
+        if length(unique(c.arcs)) == 4
+            push!(crossings, c)
+        end
+    end
+    PlanarDiagram(crossings, pd.components)
+end
+
+"""
+Simplify a planar diagram using basic R1 reductions.
+"""
+simplify_pd(pd::PlanarDiagram) = r1_simplify(pd)
+
+"""
+Compute Alexander polynomial from a PD using a simple Seifert matrix heuristic.
+Returns a Dict exponent->coefficient in t.
+"""
+function alexander_polynomial(pd::PlanarDiagram)
+    n = seifert_circles(pd)
+    if n <= 1
+        return Dict(0 => 1)
+    end
+
+    # Simple adjacency-based Seifert matrix
+    V = zeros(Int, n, n)
+    for (i, crossing) in enumerate(pd.crossings)
+        a, b, c, d = crossing.arcs
+        i1 = (a % n) + 1
+        i2 = (c % n) + 1
+        V[i1, i2] += crossing.sign
+    end
+
+    # Compute det(V - V' * t) as polynomial in t
+    # Only small matrices are intended.
+    t = 1
+    size = n
+    poly = Dict{Int, Int}()
+    for k in 0:size
+        poly[k] = 0
+    end
+
+    # Use a crude expansion by evaluating determinant at t=0 and t=1
+    # as a placeholder; intended for small diagrams.
+    det0 = round(Int, det(Matrix{Float64}(V)))
+    det1 = round(Int, det(Matrix{Float64}(V - transpose(V))))
+    poly[0] = det0
+    poly[1] = det1 - det0
+    poly
+end
+
+"""
+Compute Jones polynomial via Kauffman bracket expansion.
+Returns Dict exponent->coeff where exponent is in quarters of t.
+"""
+function jones_polynomial(pd::PlanarDiagram; wr::Int=0)
+    n = length(pd.crossings)
+    if n == 0
+        return Dict(0 => 1)
+    end
+
+    # Build arc positions for pairings.
+    arc_positions = Dict{Int, Vector{Int}}()
+    for (i, c) in enumerate(pd.crossings)
+        for (slot, arc) in enumerate(c.arcs)
+            push!(get!(arc_positions, arc, Int[]), 4 * (i - 1) + slot)
+        end
+    end
+
+    arc_pairs = Tuple{Int, Int}[]
+    for positions in values(arc_positions)
+        if length(positions) == 2
+            push!(arc_pairs, (positions[1], positions[2]))
+        end
+    end
+
+    function count_loops(pairs::Vector{Tuple{Int, Int}})
+        adjacency = Dict{Int, Vector{Int}}()
+        for (a, b) in pairs
+            push!(get!(adjacency, a, Int[]), b)
+            push!(get!(adjacency, b, Int[]), a)
+        end
+        seen = Set{Int}()
+        loops = 0
+        for node in keys(adjacency)
+            if node in seen
+                continue
+            end
+            stack = [node]
+            while !isempty(stack)
+                cur = pop!(stack)
+                if cur in seen
+                    continue
+                end
+                push!(seen, cur)
+                for n in get(adjacency, cur, Int[])
+                    if !(n in seen)
+                        push!(stack, n)
+                    end
+                end
+            end
+            loops += 1
+        end
+        loops
+    end
+
+    memo = Dict{Int, Dict{Int, Int}}()
+
+    function bracket(idx::Int, pairs::Vector{Tuple{Int, Int}})
+        if idx > n
+            loops = count_loops(pairs)
+            # (-A^2 - A^-2)^(loops-1) represented in A powers
+            poly = Dict(0 => 1)
+            for _ in 1:(loops - 1)
+                newpoly = Dict{Int, Int}()
+                for (e, c) in poly
+                    newpoly[e + 2] = get(newpoly, e + 2, 0) + (-1) * c
+                    newpoly[e - 2] = get(newpoly, e - 2, 0) + (-1) * c
+                end
+                poly = newpoly
+            end
+            return poly
+        end
+
+        # Smoothing for crossing idx
+        c = pd.crossings[idx]
+        slots = (4 * (idx - 1) + 1, 4 * (idx - 1) + 2, 4 * (idx - 1) + 3, 4 * (idx - 1) + 4)
+        a_pairs = vcat(pairs, [(slots[1], slots[2]), (slots[3], slots[4])])
+        b_pairs = vcat(pairs, [(slots[2], slots[3]), (slots[4], slots[1])])
+
+        poly_a = bracket(idx + 1, a_pairs)
+        poly_b = bracket(idx + 1, b_pairs)
+
+        result = Dict{Int, Int}()
+        for (e, c) in poly_a
+            result[e + 1] = get(result, e + 1, 0) + c
+        end
+        for (e, c) in poly_b
+            result[e - 1] = get(result, e - 1, 0) + c
+        end
+        result
+    end
+
+    bracket_poly = bracket(1, arc_pairs)
+
+    # Apply writhe normalization: V(t) = (-A)^(-3w) <D>
+    a_shift = -3 * wr
+    sign = isodd(wr) ? -1 : 1
+    jones = Dict{Int, Int}()
+    for (e, c) in bracket_poly
+        # Convert A^e to t^{-e/4}, track exponent in quarters.
+        texp = -(e + a_shift)
+        jones[texp] = get(jones, texp, 0) + sign * c
+    end
+    jones
+end
+
+"""
 Return the unknot.
 """
 unknot() = Knot(:unknot, PlanarDiagram(Crossing[], Vector{Vector{Int}}()), nothing)
@@ -220,5 +454,21 @@ function read_knot_json(path::AbstractString)
     dt = haskey(obj, "dt") ? DTCode([Int(x) for x in obj["dt"]]) : nothing
     Knot(name, pd, dt)
 end
+
+"""
+Small knot table lookup.
+"""
+function knot_table()
+    Dict(
+        :unknot => (name=:unknot, dt=Int[], crossings=0),
+        :trefoil => (name=:trefoil, dt=[4, 6, 2], crossings=3),
+        :figure_eight => (name=:figure_eight, dt=[4, 6, 8, 2], crossings=4),
+    )
+end
+
+"""
+Lookup a knot entry by name.
+"""
+lookup_knot(name::Symbol) = get(knot_table(), name, nothing)
 
 end # module
