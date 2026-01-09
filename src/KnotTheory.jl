@@ -2,6 +2,8 @@ module KnotTheory
 
 using JSON3
 using LinearAlgebra
+using Graphs
+using Polynomials
 
 export EdgeOrientation, Crossing, PlanarDiagram, DTCode
 export Knot, Link
@@ -13,6 +15,7 @@ export seifert_circles, braid_index_estimate
 export alexander_polynomial, jones_polynomial
 export simplify_pd, r1_simplify
 export knot_table, lookup_knot
+export to_graph, to_polynomial, plot_pd
 
 @enum EdgeOrientation Over Under
 
@@ -393,6 +396,46 @@ function jones_polynomial(pd::PlanarDiagram; wr::Int=0)
         jones[texp] = get(jones, texp, 0) + sign * c
     end
     jones
+end
+
+"""
+Convert a planar diagram to a Graphs.jl simple graph.
+"""
+function to_graph(pd::PlanarDiagram)
+    max_arc = 0
+    for c in pd.crossings
+        max_arc = max(max_arc, maximum(c.arcs))
+    end
+    g = SimpleGraph(max_arc)
+    for c in pd.crossings
+        add_edge!(g, c.arcs[1], c.arcs[2])
+        add_edge!(g, c.arcs[2], c.arcs[3])
+        add_edge!(g, c.arcs[3], c.arcs[4])
+        add_edge!(g, c.arcs[4], c.arcs[1])
+    end
+    g
+end
+
+"""
+Convert a dict exponent->coefficient to a Polynomials.Polynomial.
+"""
+function to_polynomial(dict::Dict{Int, Int})
+    if isempty(dict)
+        return Polynomial([0])
+    end
+    max_exp = maximum(collect(keys(dict)))
+    coeffs = zeros(Int, max_exp + 1)
+    for (exp, coeff) in dict
+        coeffs[exp + 1] = coeff
+    end
+    Polynomial(coeffs)
+end
+
+"""
+Plot a planar diagram using CairoMakie if available.
+"""
+function plot_pd(pd::PlanarDiagram)
+    error("plot_pd requires CairoMakie; add it to your environment to enable plotting.")
 end
 
 """

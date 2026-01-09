@@ -1,4 +1,6 @@
 using Test
+using Graphs
+using Polynomials
 using KnotTheory
 
 @testset "KnotTheory" begin
@@ -31,6 +33,8 @@ using KnotTheory
         @test haskey(alex, 0)
         jones = jones_polynomial(pd; wr=1)
         @test !isempty(jones)
+        poly = to_polynomial(alex)
+        @test poly isa Polynomials.Polynomial
     end
 
     @testset "Simplification" begin
@@ -43,6 +47,12 @@ using KnotTheory
         table = knot_table()
         @test haskey(table, :trefoil)
         @test lookup_knot(:trefoil).crossings == 3
+    end
+
+    @testset "Graphs" begin
+        pd = pdcode([(1, 2, 3, 4, 1)])
+        g = to_graph(pd)
+        @test nv(g) >= 4
     end
 
     @testset "JSON" begin

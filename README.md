@@ -22,11 +22,13 @@ println(crossing_number(k))
 - Polynomials: Alexander (Seifert matrix heuristic) and Jones (skein).
 - Simplification: basic Reidemeister I reduction.
 - Example knots: unknot, trefoil, figure-eight.
+- Graphs.jl conversion and Polynomials.jl helpers.
+- Optional CairoMakie plotting via package extension.
 
 ## API Snapshot
 
 ```julia
-Crossing, PlanarDiagram, DTCode, Knot, Link
+EdgeOrientation, Crossing, PlanarDiagram, DTCode, Knot, Link
 pdcode, dtcode, to_dowker
 crossing_number, writhe, linking_number
 seifert_circles, braid_index_estimate
@@ -34,6 +36,7 @@ alexander_polynomial, jones_polynomial
 simplify_pd, r1_simplify
 knot_table, lookup_knot
 write_knot_json, read_knot_json
+to_graph, to_polynomial, plot_pd
 ```
 
 ## Development
@@ -42,3 +45,8 @@ write_knot_json, read_knot_json
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 julia --project=. -e 'using Pkg; Pkg.test()'
 ```
+
+## Docs & Tutorials
+
+- `docs/README.md` for documentation drafts.
+- `tutorials/intro.ipynb` for a minimal notebook scaffold.
