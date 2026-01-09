@@ -1,0 +1,9 @@
+name = "KnotTheory"
+uuid = "215268c9-7579-426e-8b7c-a3dc27acd339"
+authors = ["hyperpolymath"]
+version = "0.1.0"
+
+[deps]
+
+[compat]
+julia = "1.9"
