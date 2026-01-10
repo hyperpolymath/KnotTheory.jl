@@ -1,4 +1,9 @@
+[![License](https://img.shields.io/badge/license-PMPL--1.0-blue.svg)](https://github.com/hyperpolymath/palimpsest-license)
+
 # KnotTheory.jl
+
+
+
 
 KnotTheory.jl provides a practical Julia toolkit for knot theory: data
 structures for planar diagrams, basic invariants, and import/export helpers.
