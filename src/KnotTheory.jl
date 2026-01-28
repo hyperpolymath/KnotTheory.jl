@@ -270,8 +270,20 @@ function alexander_polynomial(pd::PlanarDiagram)
     V = zeros(Int, n, n)
     for (i, crossing) in enumerate(pd.crossings)
         a, b, c, d = crossing.arcs
+
+        # Validate arc values are non-negative
+        if any(x -> x < 0, [a, b, c, d])
+            throw(ArgumentError("Crossing arcs must be non-negative, got $(crossing.arcs)"))
+        end
+
         i1 = (a % n) + 1
         i2 = (c % n) + 1
+
+        # Bounds check
+        if i1 < 1 || i1 > n || i2 < 1 || i2 > n
+            throw(BoundsError(V, (i1, i2)))
+        end
+
         V[i1, i2] += crossing.sign
     end
 
@@ -293,12 +305,19 @@ function alexander_polynomial(pd::PlanarDiagram)
     poly
 end
 
+const MAX_CROSSINGS_FOR_BRACKET = 20
+
 """
 Compute Jones polynomial via Kauffman bracket expansion.
 Returns Dict exponent->coeff where exponent is in quarters of t.
 """
 function jones_polynomial(pd::PlanarDiagram; wr::Int=0)
     n = length(pd.crossings)
+    if n > MAX_CROSSINGS_FOR_BRACKET
+        throw(ArgumentError(
+            "Jones polynomial via bracket requires ≤$MAX_CROSSINGS_FOR_BRACKET crossings (got $n)"
+        ))
+    end
     if n == 0
         return Dict(0 => 1)
     end
