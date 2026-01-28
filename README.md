@@ -9,6 +9,20 @@ KnotTheory.jl provides a practical Julia toolkit for knot theory: data
 structures for planar diagrams, basic invariants, and import/export helpers.
 This is an early scaffold intended to grow into a complete library.
 
+## Installation
+
+### From Julia REPL
+```julia
+using Pkg
+Pkg.add("KnotTheory")
+```
+
+### From Git (Development)
+```julia
+using Pkg
+Pkg.add(url="https://github.com/hyperpolymath/KnotTheory.jl")
+```
+
 ## Quick Start
 
 ```julia
