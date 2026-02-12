@@ -437,18 +437,25 @@ function to_graph(pd::PlanarDiagram)
 end
 
 """
-Convert a dict exponent->coefficient to a Polynomials.Polynomial.
+    to_polynomial(dict::Dict{Int, Int}) -> (Polynomial, Int)
+
+Convert a sparse polynomial representation (Dict of exponent => coefficient)
+to a Polynomial object with an offset. Returns a tuple (poly, min_exp) where
+the actual polynomial is t^min_exp * poly(t).
+
+Handles negative exponents correctly by shifting all coefficients.
 """
 function to_polynomial(dict::Dict{Int, Int})
     if isempty(dict)
-        return Polynomial([0])
+        return (Polynomial([0]), 0)
     end
-    max_exp = maximum(collect(keys(dict)))
-    coeffs = zeros(Int, max_exp + 1)
+    min_exp = minimum(keys(dict))
+    max_exp = maximum(keys(dict))
+    coeffs = zeros(Int, max_exp - min_exp + 1)
     for (exp, coeff) in dict
-        coeffs[exp + 1] = coeff
+        coeffs[exp - min_exp + 1] = coeff
     end
-    Polynomial(coeffs)
+    (Polynomial(coeffs), min_exp)
 end
 
 """

@@ -180,19 +180,16 @@ public export
 Callback : Type
 Callback = Bits64 -> Bits32 -> Bits32
 
-||| Register a callback
+||| Register a callback (typed foreign declaration avoids unsafe cast)
 export
 %foreign "C:{{project}}_register_callback, lib{{project}}"
-prim__registerCallback : Bits64 -> AnyPtr -> PrimIO Bits32
+prim__registerCallback : Bits64 -> (Bits64 -> Bits32 -> Bits32) -> PrimIO Bits32
 
 ||| Safe callback registration
 export
 registerCallback : Handle -> Callback -> IO (Either Result ())
 registerCallback h cb = do
-  -- SAFETY: believe_me casts Idris Callback function type to C-compatible AnyPtr.
-  -- Required for FFI callback registration. The Callback type signature MUST match
-  -- the C function pointer type expected by the library's register_callback function.
-  result <- primIO (prim__registerCallback (handlePtr h) (believe_me cb))
+  result <- primIO (prim__registerCallback (handlePtr h) cb)
   pure $ case resultFromInt result of
     Just Ok => Right ()
     Just err => Left err
