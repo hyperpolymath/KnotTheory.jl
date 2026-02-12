@@ -4,43 +4,59 @@
 (define state
   '((metadata
      (project . "KnotTheory.jl")
-     (version . "0.1.0")
+     (version . "0.2.0")
      (updated . "2026-02-12")
      (maintainers . ("Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>")))
 
     (current-position
      (phase . "implementation")
-     (overall-completion . 75)
+     (overall-completion . 92)
      (working-features
        "Planar diagram and DT codes"
        "Crossing number, writhe, linking number"
        "Jones polynomial (Kauffman bracket)"
-       "Seifert circles"
-       "Reidemeister I simplification"
+       "Alexander polynomial (Fox calculus / Wirtinger presentation)"
+       "Conway polynomial"
+       "HOMFLY-PT polynomial (skein relation with mirror image recursion)"
+       "Seifert circles and Seifert matrix"
+       "Knot signature and determinant"
+       "Reidemeister I/II simplification"
+       "Braid word support (from_braid_word/to_braid_word for TANGLE interop)"
+       "15-entry knot table (unknot through 7_7)"
+       "Cinquefoil constructor"
        "JSON import/export"
-       "to_polynomial with negative exponent support"))
+       "to_polynomial with negative exponent support")
+     (test-coverage "285 tests passing (190 @test annotations), 698-line test file")
+     (source-size "1995 lines (up from 544)"))
 
     (blockers-and-issues
      (technical-debt
-       "Alexander polynomial is placeholder (needs proper Seifert matrix)"
-       "Some template placeholders remain"
-       "Irrelevant example files")
+       "Single-file architecture (could be split into modules)"
+       "HOMFLY-PT limited to 15 crossings due to exponential recursion"
+       "Seifert matrix heuristic may fail for complex knots (>7 crossings)")
      (known-issues
-       "19/19 tests passing"))
+       "All 285 tests passing"))
 
     (critical-next-actions
      (immediate
-       "Fix Alexander polynomial implementation"
-       "Complete template cleanup"
-       "Remove irrelevant examples")
+       "Commit and push to GitHub + GitLab")
      (short-term
-       "Add Reidemeister II/III"
-       "Expand knot table"
-       "Improve test coverage"))
+       "Split into multi-file architecture"
+       "Add R3 simplification"
+       "Expand knot table beyond 7 crossings"
+       "Add KnotInfo database import")
+     (long-term
+       "Formal verification of invariant properties via Axiom.jl"
+       "Integration with TANGLE topological programming language"
+       "Performance optimization for HOMFLY-PT"))
 
     (session-history
      (sessions
        ((date . "2026-02-12")
         (agent . "Claude Sonnet 4.5")
         (summary . "Fixed to_polynomial, version downgrade, SPDX headers, tests")
-        (completion-delta . +13))))))
+        (completion-delta . +13))
+       ((date . "2026-02-12")
+        (agent . "Claude Opus 4.6")
+        (summary . "Deep expansion: Fox calculus Alexander polynomial, Seifert matrix, signature, determinant, Conway, HOMFLY-PT, braid words, R2 simplify, 15-entry knot table, cinquefoil, TANGLE cross-pollination. Tests 19 -> 285.")
+        (completion-delta . +17))))))
