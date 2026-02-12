@@ -34,8 +34,9 @@ using KnotTheory
         @test haskey(alex, 0)
         jones = jones_polynomial(pd; wr=1)
         @test !isempty(jones)
-        poly = to_polynomial(alex)
+        poly, offset = to_polynomial(alex)
         @test poly isa Polynomials.Polynomial
+        @test offset isa Int
     end
 
     @testset "Simplification" begin

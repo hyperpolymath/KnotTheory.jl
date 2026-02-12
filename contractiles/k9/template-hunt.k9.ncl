@@ -7,7 +7,7 @@ K9!
 {
   pedigree = {
     schema_version = "1.0.0",
-    component_type = "library-build",
+    component_type = "FILL: describe component type (e.g., 'deployment', 'setup-script')",
     security = {
       leash = 'Hunt,
       trust_level = "full-system-access",
@@ -17,9 +17,9 @@ K9!
       signature_required = true,
     },
     metadata = {
-      name = "KnotTheory.jl",
+      name = "FILL: component-name",
       version = "1.0.0",
-      description = "Build and deployment automation for KnotTheory.jl",
+      description = "FILL: Detailed description of what this component does",
       author = "Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>",
     },
     warnings = [
@@ -29,9 +29,9 @@ K9!
       "Use dry-run mode first: ./must --dry-run run your-file.k9.ncl",
     ],
     side_effects = [
-      "Creates build artifacts in target/ or _build/",
-      "Runs just recipes for compilation",
-      "No network access required for local builds",
+      "FILL: List what files/directories this creates or modifies",
+      "FILL: List what commands this executes",
+      "FILL: List what network access this requires",
     ],
   },
 
@@ -53,15 +53,15 @@ K9!
   recipes = {
     # Main entry point (runs by default)
     default = {
-      recipe = "build",
-      description = "Build the project",
+      recipe = "FILL: main-task",
+      description = "FILL: What the default recipe does",
     },
 
     # Define your recipes here
     "main-task" = {
       dependencies = ["check-prerequisites"],
       commands = [
-        "echo 'Building project...'",
+        "echo 'FILL: Add your commands here'",
         # Example: Create directory
         # "mkdir -p %{config.target_dir}",
         # Example: Run a command
@@ -86,7 +86,7 @@ K9!
     "build" = {
       description = "Build the project",
       commands = [
-        "echo 'Build step completed'",
+        "echo 'FILL: Add build commands'",
       ],
     },
 
@@ -94,7 +94,7 @@ K9!
       description = "Deploy the application",
       dependencies = ["build"],
       commands = [
-        "echo 'Deployment step completed'",
+        "echo 'FILL: Add deployment commands'",
       ],
     },
 
@@ -103,7 +103,7 @@ K9!
       commands = [
         "echo '⚠️  This will delete files - waiting 3 seconds...'",
         "sleep 3",
-        "echo 'Cleanup completed'",
+        "echo 'FILL: Add cleanup commands'",
         # "rm -rf %{config.target_dir}",
       ],
     },
@@ -117,7 +117,7 @@ K9!
 }
 
 # Usage:
-# 1. Fill in TODO items above
+# 1. Fill in FILL: placeholders above
 # 2. Define configuration with contracts
 # 3. Implement Just recipes with your commands
 # 4. Test with dry-run: ./must --dry-run run your-file.k9.ncl
@@ -127,7 +127,7 @@ K9!
 # 8. Users verify and run: ./must verify && ./must run your-file.k9.ncl
 #
 # Security checklist:
-# ✓ All TODO items filled in
+# ✓ All FILL: placeholders filled in
 # ✓ side_effects documented accurately
 # ✓ Commands reviewed for safety
 # ✓ No hardcoded secrets or credentials
