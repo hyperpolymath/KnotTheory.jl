@@ -1,21 +1,21 @@
 # KnotTheory.jl Development Roadmap
 
-## Current State (v1.0)
+## Current State (v0.1.0)
 
-Production-ready knot theory toolkit:
+Early development knot theory toolkit:
 - Planar diagram (PD) and Dowker-Thistlethwaite (DT) codes
 - Basic invariants (crossing number, writhe, linking number)
-- Polynomial invariants (Alexander, Jones via Kauffman bracket)
+- Polynomial invariants (Alexander placeholder, Jones via Kauffman bracket)
 - Seifert circles and braid index estimation
 - Reidemeister I simplification
 - JSON import/export
 - Optional CairoMakie plotting (package extension)
 
-**Status:** Complete with security hardening (recursion limits, bounds checks) and comprehensive tests.
+**Status:** Core functionality implemented with security hardening (recursion limits, bounds checks). Alexander polynomial is a placeholder requiring proper implementation.
 
 ---
 
-## v1.0 → v1.2 Roadmap (Near-term)
+## v0.1.0 → v0.2.0 Roadmap (Near-term)
 
 ### v1.1 - Core Invariants & Performance (3-6 months)
 
