@@ -10,7 +10,7 @@
 
     (current-position
      (phase . "implementation")
-     (overall-completion . 92)
+     (overall-completion . 95)
      (working-features
        "Planar diagram and DT codes"
        "Crossing number, writhe, linking number"
@@ -39,10 +39,8 @@
 
     (critical-next-actions
      (immediate
-       "Commit and push to GitHub + GitLab")
+       "Split into multi-file architecture")
      (short-term
-       "Split into multi-file architecture"
-       "Add R3 simplification"
        "Expand knot table beyond 7 crossings"
        "Add KnotInfo database import")
      (long-term
@@ -59,4 +57,8 @@
        ((date . "2026-02-12")
         (agent . "Claude Opus 4.6")
         (summary . "Deep expansion: Fox calculus Alexander polynomial, Seifert matrix, signature, determinant, Conway, HOMFLY-PT, braid words, R2 simplify, 15-entry knot table, cinquefoil, TANGLE cross-pollination. Tests 19 -> 285.")
-        (completion-delta . +17))))))
+        (completion-delta . +17))
+       ((date . "2026-02-12")
+        (agent . "Claude Opus 4.6")
+        (summary . "Complete README rewrite: full categorized API reference (27 exports), academic bibliography (6 textbooks, 4 papers), removed outdated 'early scaffold' language. Tests verified: 285/285 pass.")
+        (completion-delta . +3))))))
