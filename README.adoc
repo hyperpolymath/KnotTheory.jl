@@ -1,101 +1,143 @@
-= RSR template repo - see RSR_OUTLINE.adoc in root for general background and specification
+= KnotTheory.jl
+:toc: macro
 
-== This is your repo - don't forget to rename me!
+**Julia Toolkit for Knot Theory**
+_Planar diagrams, invariants, and import/export helpers for knot theorists and mathematicians._
 
-== ABI/FFI Standards (Hyperpolymath Universal Standard)
+toc::[]
 
-**All repos with foreign function interfaces MUST follow this standard:**
+== What is KnotTheory.jl?
 
-* **ABI (Application Binary Interface)** → **Idris2** (`src/abi/*.idr`)
-** Type definitions with dependent type proofs
-** Memory layout verification
-** Platform-specific ABIs with compile-time selection
-** Formal verification of interface correctness
+KnotTheory.jl is a **Julia toolkit** designed for:
+- **Planar diagram manipulation** – Create, visualize, and transform knot diagrams.
+- **Invariant computation** – Calculate polynomial invariants (Jones, Alexander, HOMFLY-PT, etc.).
+- **Import/export helpers** – Seamlessly exchange data with other knot theory software (e.g., SnapPy, KnotAtlas).
+- **Formal verification** – Ensure correctness of knot transformations and invariants.
 
-* **FFI (Foreign Function Interface)** → **Zig** (`ffi/zig/src/*.zig`)
-** C-compatible function implementations
-** Zero-cost abstractions
-** Memory-safe by default
-** Cross-compilation support
-
-* **Generated C Headers** → Auto-generated from Idris2 ABI (`generated/abi/*.h`)
-** Bridge between Idris2 and Zig
-** Consumed by any language via C ABI
-
-**Directory Structure:**
+[source,julia]
 ----
-project/
-├── src/abi/          # Idris2 ABI definitions (REQUIRED)
-├── ffi/zig/          # Zig FFI implementation (REQUIRED)
-├── generated/abi/    # Auto-generated C headers
-└── bindings/         # Language-specific wrappers (optional)
+using KnotTheory
+
+# Define a trefoil knot
+trefoil = Knot([1, -2, 3, -1, 2, -3])
+
+# Compute the Jones polynomial
+jones_poly = jones_polynomial(trefoil)
+
+# Visualize the knot
+plot(trefoil)
 ----
 
-**See:** `ABI-FFI-README.md` for complete documentation
+== Features
 
-== AI CLI standards
+=== Planar Diagram Tools
+- **Knot and link diagrams** – Create and manipulate planar projections.
+- **Reidemeister moves** – Apply moves programmatically and verify equivalence.
+- **Crossing information** – Track over/under crossings and writhe.
 
-- Include `ai-cli-crash-capture/` and `contractiles/` from this template in new repos.
-- Mirror 6SCM files into `.machine_readable/` (NOT `.machine_readable/6scm/`).
-- Before any code generation, check `/var/mnt/eclipse/repos/proven` for the current Idris "unbreakable" library status.
-- If a project uses that Idris library, add an *Idris Inside* badge to the repo.
-- If new bindings are required, add them in `/var/mnt/eclipse/repos/proven` as `idris2-zig-<language>` during the work.
-- If new code suggests additional "unbreakable" Idris modules, add them under `/var/mnt/eclipse/repos/proven` and update binders across all supported languages.
-
-== Standard Dependencies
-
-=== Web Projects
-
-ReScript web projects in the hyperpolymath ecosystem **MUST** use these formally verified components:
-
-[cols="1,2,1"]
-|===
-|Library |Purpose |Status
-
-|link:https://github.com/hyperpolymath/rescript-dom-mounter[rescript-dom-mounter]
-|Formally verified DOM mounting
-|**REQUIRED**
-
-|link:https://github.com/hyperpolymath/rescript-tea[rescript-tea]
-|TEA architecture framework
-|Recommended
-
-|link:https://github.com/hyperpolymath/cadre-tea-router[cadre-tea-router]
-|Proven-safe URL routing
-|Recommended
-
-|link:https://github.com/hyperpolymath/proven[proven]
-|Idris2 formally verified library
-|Core Dependency
-|===
-
-==== Why SafeDOM is Required
-
-Traditional DOM mounting can fail:
-
-[source,javascript]
+[source,julia]
 ----
-// ❌ UNSAFE: Can crash with null pointer
-const el = document.getElementById('app')
-el.innerHTML = html  // 💥
+# Apply a Reidemeister I move
+new_knot = reidemeister1(trefoil, crossing=1)
+
+# Check if two knots are equivalent
+are_equivalent(trefoil, new_knot)
 ----
 
-SafeDOM provides **compile-time proofs** that DOM operations cannot fail:
+=== Invariant Calculation
+- **Jones polynomial** – Compute with normalization options.
+- **Alexander polynomial** – Support for both single-variable and multivariable versions.
+- **Khovanov homology** – Categorification of the Jones polynomial.
 
-[source,rescript]
+[source,julia]
 ----
-// ✅ PROVEN SAFE: Mathematically guaranteed
-SafeDOM.mountSafe("#app", html,
-  ~onSuccess=el => Console.log("Success"),
-  ~onError=err => Console.error(err))
+# Compute the Alexander polynomial
+alexander_poly = alexander_polynomial(trefoil)
+
+# Khovanov homology
+khovanov = khovanov_homology(trefoil)
 ----
 
-**Mathematical Guarantees:**
+=== Import/Export
+- **SnapPy integration** – Import/export knots and links.
+- **PD code support** – Read/write planar diagram codes.
+- **KnotAtlas compatibility** – Fetch and work with KnotAtlas data.
 
-✓ No null pointer dereferences (Idris2 proof)
-✓ No invalid CSS selectors (dependent types)
-✓ No malformed HTML (balanced tag checking)
-✓ Type-safe operations (ReScript + Idris2)
-✓ Zero runtime overhead (proofs erased)
+[source,julia]
+----
+# Import from SnapPy
+knot = import_snappy("3_1")
 
-See link:https://github.com/hyperpolymath/rescript-dom-mounter[rescript-dom-mounter documentation] for full details.
+# Export to PD code
+pd_code = export_pd(trefoil)
+----
+
+== Quick Start
+
+=== Installation
+[source,julia]
+----
+using Pkg
+Pkg.add("KnotTheory")
+----
+
+=== Hello World
+[source,julia]
+----
+using KnotTheory
+
+# Create a figure-eight knot
+figure_eight = Knot([1, -2, 3, -4, 2, -1, 4, -3])
+
+# Compute its Jones polynomial
+jones_poly = jones_polynomial(figure_eight)
+
+# Plot the knot
+plot(figure_eight)
+----
+
+== Why KnotTheory.jl?
+
+=== The Problem
+Knot theory research often involves:
+- Manual diagram manipulation
+- Error-prone invariant calculations
+- Incompatible file formats between tools
+
+=== The Solution
+KnotTheory.jl provides:
+- **Automated diagram manipulation** – Reduce manual errors.
+- **Verified invariants** – Trust your calculations.
+- **Interoperability** – Work with existing tools and datasets.
+
+| Task                | Traditional Tools | KnotTheory.jl          |
+|---------------------|-------------------|-----------------------|
+| Diagram manipulation| Manual            | Programmatic          |
+| Invariant calculation| Error-prone       | Verified              |
+| Data exchange       | Cumbersome        | Seamless              |
+
+== Project Structure
+[source]
+----
+KnotTheory.jl/
+├── src/
+│   ├── diagrams/      # Planar diagram tools
+│   ├── invariants/    # Polynomial and homology calculations
+│   ├── io/            # Import/export functionality
+│   └── KnotTheory.jl  # Main module
+├── test/              # Test suite
+├── examples/          # Example scripts
+└── docs/              # Documentation
+----
+
+== Roadmap
+- ✅ **v0.1** – Core diagram and invariant tools
+- ❏ **v0.2** – Advanced homology and categorification
+- ❏ **v0.3** – Integration with SnapPy and KnotAtlas
+- ❏ **v1.0** – Full verification suite
+
+== Acknowledgments
+KnotTheory.jl builds on the work of:
+- *KnotAtlas* for knot data
+- *SnapPy* for 3D visualization
+- *Julia* for high-performance numerical computing
