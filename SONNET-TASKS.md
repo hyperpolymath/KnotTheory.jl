@@ -217,13 +217,13 @@ and `{{LICENSE}}` markers from the RSR template. These files are:
 - `{{OWNER}}` -> `hyperpolymath`
 - `{{REPO}}` -> `KnotTheory.jl`
 - `{{FORGE}}` -> `github.com`
-- `{{SECURITY_EMAIL}}` -> `jonathan.jewell@open.ac.uk`
+- `{{SECURITY_EMAIL}}` -> `j.d.a.jewell@open.ac.uk`
 - `{{PGP_FINGERPRINT}}` -> (remove the PGP section or leave a note to fill in)
 - `{{PGP_KEY_URL}}` -> (remove the PGP section or leave a note to fill in)
 - `{{WEBSITE}}` -> `https://github.com/hyperpolymath`
 - `{{CURRENT_YEAR}}` -> `2026`
 - `{{PROJECT_NAME}}` -> `KnotTheory.jl`
-- `{{CONDUCT_EMAIL}}` -> `jonathan.jewell@open.ac.uk`
+- `{{CONDUCT_EMAIL}}` -> `j.d.a.jewell@open.ac.uk`
 - `{{CONDUCT_TEAM}}` -> `KnotTheory.jl Maintainers`
 - `{{RESPONSE_TIME}}` -> `48 hours`
 - `{{MAIN_BRANCH}}` -> `main`

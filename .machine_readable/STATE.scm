@@ -6,7 +6,7 @@
      (project . "KnotTheory.jl")
      (version . "0.2.0")
      (updated . "2026-02-12")
-     (maintainers . ("Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>")))
+     (maintainers . ("Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>")))
 
     (current-position
      (phase . "implementation")

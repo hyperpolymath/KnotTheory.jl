@@ -6,7 +6,7 @@
      (name . "KnotTheory.jl")
      (tagline . "Knot theory invariants and planar diagram analysis")
      (category . "mathematics-topology")
-     (license . "PMPL-1.0-or-later")
+     (license . "MPL-2.0")
      (inception-date . "2024")
      (repository . "https://github.com/hyperpolymath/KnotTheory.jl"))
 
