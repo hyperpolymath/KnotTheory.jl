@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Clade declaration — part of the gv-clade-index registry
+# See: https://github.com/hyperpolymath/gv-clade-index
+
+[identity]
+uuid = "d9852dbe-4c1e-5666-83f2-57f929201526"
+primary-forge = "github"
+primary-owner = "hyperpolymath"
+canonical-name = "KnotTheory.jl"
+prefixed-name = "dx-KnotTheory.jl"
+
+[clade]
+primary = "dx"
+secondary = ["db"]
+assigned = "2026-03-16"
+rationale = ""
+
+[forges]
+github = "hyperpolymath/KnotTheory.jl"
+gitlab = "hyperpolymath/KnotTheory.jl"
+bitbucket = "hyperpolymath/KnotTheory.jl"
+
+[lineage]
+type = "standalone"
+parent = "Julia package — knot theory (relates to QuandleDB)"
+born = "2026-03-16"
