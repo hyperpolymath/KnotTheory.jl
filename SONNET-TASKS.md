@@ -10,7 +10,7 @@ significant issues: the Alexander polynomial is a self-described "placeholder"
 that produces wrong results, the `to_polynomial` helper crashes on negative
 exponents (which `jones_polynomial` routinely produces), several RSR template
 files still have unreplaced `{{PLACEHOLDER}}` markers, SPDX headers use
-the banned `AGPL-3.0-or-later` in multiple files, the `.machine_readable/`
+the banned `PMPL-1.0-or-later` in multiple files, the `.machine_readable/`
 directory is entirely missing, the `examples/` directory contains files
 irrelevant to knot theory (a ReScript SafeDOM example and a Deno JSON config),
 the version in `Project.toml` (1.0.0) contradicts `Manifest.toml` (0.1.0),
@@ -170,9 +170,9 @@ println("PASS: version is 0.1.0")
 
 ---
 
-## TASK 4: Fix SPDX license headers -- replace AGPL-3.0-or-later with PMPL-1.0-or-later (HIGH)
+## TASK 4: Fix SPDX license headers -- replace PMPL-1.0-or-later with PMPL-1.0-or-later (HIGH)
 
-**Problem:** Five files use the banned `AGPL-3.0-or-later` SPDX identifier:
+**Problem:** Five files use the banned `PMPL-1.0-or-later` SPDX identifier:
 1. `/var/mnt/eclipse/repos/KnotTheory.jl/ffi/zig/build.zig` (line 2)
 2. `/var/mnt/eclipse/repos/KnotTheory.jl/ffi/zig/src/main.zig` (line 6)
 3. `/var/mnt/eclipse/repos/KnotTheory.jl/ffi/zig/test/integration_test.zig` (line 2)
@@ -181,7 +181,7 @@ println("PASS: version is 0.1.0")
 
 Per CLAUDE.md: "NEVER use AGPL-3.0".
 
-**Fix:** In each file, replace `AGPL-3.0-or-later` with `PMPL-1.0-or-later`.
+**Fix:** In each file, replace `PMPL-1.0-or-later` with `PMPL-1.0-or-later`.
 
 **Verification:**
 ```bash
@@ -423,7 +423,7 @@ cd /var/mnt/eclipse/repos/KnotTheory.jl && \
 
 **Problem:** `/var/mnt/eclipse/repos/KnotTheory.jl/docs/CITATIONS.adoc`
 still references `rsr-template-repo` everywhere and uses
-`AGPL-3.0-or-later` for the license. It also attributes authorship to
+`PMPL-1.0-or-later` for the license. It also attributes authorship to
 `Polymath, Hyper` instead of the correct `Jewell, Jonathan D.A.`.
 
 **File:** `/var/mnt/eclipse/repos/KnotTheory.jl/docs/CITATIONS.adoc`
@@ -432,7 +432,7 @@ still references `rsr-template-repo` everywhere and uses
 - `rsr-template-repo` -> `KnotTheory.jl`
 - `RSR-template-repo` -> `KnotTheory.jl`
 - `Polymath, Hyper` / `Hyper Polymath` -> `Jewell, Jonathan D.A.` / `Jonathan D.A. Jewell`
-- `AGPL-3.0-or-later` -> `PMPL-1.0-or-later`
+- `PMPL-1.0-or-later` -> `PMPL-1.0-or-later`
 - `2025` -> `2026` (year)
 - Fix the title line to say `= KnotTheory.jl - Citation Guide`
 - Fix URLs to point to `https://github.com/hyperpolymath/KnotTheory.jl`
