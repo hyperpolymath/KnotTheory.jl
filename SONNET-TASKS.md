@@ -195,10 +195,10 @@ cd /var/mnt/eclipse/repos/KnotTheory.jl && \
 ## TASK 5: Replace all unreplaced `{{PLACEHOLDER}}` template markers (HIGH)
 
 **Problem:** Ten files still contain unreplaced `{{PROJECT}}`, `{{project}}`,
-`{{OWNER}}`, `{{REPO}}`, `{{FORGE}}`, `{{SECURITY_EMAIL}}`, `{{PGP_FINGERPRINT}}`,
-`{{PGP_KEY_URL}}`, `{{WEBSITE}}`, `{{CURRENT_YEAR}}`, `{{PROJECT_NAME}}`,
-`{{CONDUCT_EMAIL}}`, `{{CONDUCT_TEAM}}`, `{{RESPONSE_TIME}}`, `{{MAIN_BRANCH}}`,
-and `{{LICENSE}}` markers from the RSR template. These files are:
+`hyperpolymath`, `KnotTheory.jl`, `github.com`, `6759885+hyperpolymath@users.noreply.github.com`, `[PGP fingerprint not set]`,
+`{{PGP_KEY_URL}}`, `{{WEBSITE}}`, `2026`, `KnotTheory.Jl`,
+`{{CONDUCT_EMAIL}}`, `{{CONDUCT_TEAM}}`, `{{RESPONSE_TIME}}`, `main`,
+and `PMPL-1.0-or-later` markers from the RSR template. These files are:
 
 1. `/var/mnt/eclipse/repos/KnotTheory.jl/ffi/zig/build.zig` -- `{{PROJECT}}`, `{{project}}`
 2. `/var/mnt/eclipse/repos/KnotTheory.jl/ffi/zig/src/main.zig` -- `{{PROJECT}}`, `{{project}}`
@@ -206,28 +206,28 @@ and `{{LICENSE}}` markers from the RSR template. These files are:
 4. `/var/mnt/eclipse/repos/KnotTheory.jl/src/abi/Types.idr` -- `{{PROJECT}}`
 5. `/var/mnt/eclipse/repos/KnotTheory.jl/src/abi/Layout.idr` -- `{{PROJECT}}`
 6. `/var/mnt/eclipse/repos/KnotTheory.jl/src/abi/Foreign.idr` -- `{{PROJECT}}`, `{{project}}`
-7. `/var/mnt/eclipse/repos/KnotTheory.jl/ABI-FFI-README.md` -- `{{PROJECT}}`, `{{project}}`, `{{LICENSE}}`
-8. `/var/mnt/eclipse/repos/KnotTheory.jl/SECURITY.md` -- `{{OWNER}}`, `{{REPO}}`, `{{SECURITY_EMAIL}}`, `{{PGP_FINGERPRINT}}`, `{{PGP_KEY_URL}}`, `{{WEBSITE}}`, `{{CURRENT_YEAR}}`, `{{PROJECT_NAME}}`
-9. `/var/mnt/eclipse/repos/KnotTheory.jl/CODE_OF_CONDUCT.md` -- `{{PROJECT_NAME}}`, `{{OWNER}}`, `{{REPO}}`, `{{CONDUCT_EMAIL}}`, `{{CONDUCT_TEAM}}`, `{{RESPONSE_TIME}}`, `{{CURRENT_YEAR}}`, `{{FORGE}}`
-10. `/var/mnt/eclipse/repos/KnotTheory.jl/CONTRIBUTING.md` -- `{{FORGE}}`, `{{OWNER}}`, `{{REPO}}`, `{{MAIN_BRANCH}}`
+7. `/var/mnt/eclipse/repos/KnotTheory.jl/ABI-FFI-README.md` -- `{{PROJECT}}`, `{{project}}`, `PMPL-1.0-or-later`
+8. `/var/mnt/eclipse/repos/KnotTheory.jl/SECURITY.md` -- `hyperpolymath`, `KnotTheory.jl`, `6759885+hyperpolymath@users.noreply.github.com`, `[PGP fingerprint not set]`, `{{PGP_KEY_URL}}`, `{{WEBSITE}}`, `2026`, `KnotTheory.Jl`
+9. `/var/mnt/eclipse/repos/KnotTheory.jl/CODE_OF_CONDUCT.md` -- `KnotTheory.Jl`, `hyperpolymath`, `KnotTheory.jl`, `{{CONDUCT_EMAIL}}`, `{{CONDUCT_TEAM}}`, `{{RESPONSE_TIME}}`, `2026`, `github.com`
+10. `/var/mnt/eclipse/repos/KnotTheory.jl/CONTRIBUTING.md` -- `github.com`, `hyperpolymath`, `KnotTheory.jl`, `main`
 
 **Fix:** Replace with these values:
 - `{{PROJECT}}` -> `KnotTheory`
 - `{{project}}` -> `knottheory`
-- `{{OWNER}}` -> `hyperpolymath`
-- `{{REPO}}` -> `KnotTheory.jl`
-- `{{FORGE}}` -> `github.com`
-- `{{SECURITY_EMAIL}}` -> `j.d.a.jewell@open.ac.uk`
-- `{{PGP_FINGERPRINT}}` -> (remove the PGP section or leave a note to fill in)
+- `hyperpolymath` -> `hyperpolymath`
+- `KnotTheory.jl` -> `KnotTheory.jl`
+- `github.com` -> `github.com`
+- `6759885+hyperpolymath@users.noreply.github.com` -> `j.d.a.jewell@open.ac.uk`
+- `[PGP fingerprint not set]` -> (remove the PGP section or leave a note to fill in)
 - `{{PGP_KEY_URL}}` -> (remove the PGP section or leave a note to fill in)
 - `{{WEBSITE}}` -> `https://github.com/hyperpolymath`
-- `{{CURRENT_YEAR}}` -> `2026`
-- `{{PROJECT_NAME}}` -> `KnotTheory.jl`
+- `2026` -> `2026`
+- `KnotTheory.Jl` -> `KnotTheory.jl`
 - `{{CONDUCT_EMAIL}}` -> `j.d.a.jewell@open.ac.uk`
 - `{{CONDUCT_TEAM}}` -> `KnotTheory.jl Maintainers`
 - `{{RESPONSE_TIME}}` -> `48 hours`
-- `{{MAIN_BRANCH}}` -> `main`
-- `{{LICENSE}}` -> `PMPL-1.0-or-later`
+- `main` -> `main`
+- `PMPL-1.0-or-later` -> `PMPL-1.0-or-later`
 
 Also delete the HTML comment blocks that say "TEMPLATE INSTRUCTIONS (delete this block before publishing)" from SECURITY.md (lines 3-19) and CODE_OF_CONDUCT.md (lines 3-21).
 
