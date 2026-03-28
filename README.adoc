@@ -1,5 +1,0 @@
-= KnotTheory.jl
-:toc: preamble
-:icons: font
-
-
