@@ -1,42 +1,175 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 = KnotTheory.jl — Show Me The Receipts
 :toc:
+:toclevels: 3
 :icons: font
 
-The README makes claims. This file backs them up.
+The README makes claims. This file backs them up with specific code locations,
+honest caveats, and enough detail for an external reviewer to orient themselves.
 
-[quote, README]
-____
-See the link:README.adoc[README] for details.
-____
+== README Claims — Verified
 
-== Technology Choices
+=== Claim 1: "Planar diagram model with oriented crossings and multi-component links"
 
-[cols="1,2"]
-|===
-| Technology | Learn More
+*True.* `src/KnotTheory.jl` defines `Crossing` with `arcs::NTuple{4, Int}` and
+`sign::Int`, following the KnotAtlas PD convention (under-strand enters at arc `a`,
+exits at `c`; over-strand enters at `d`, exits at `b`). `PlanarDiagram`
+aggregates `Vector{Crossing}`. `Link` generalises `Knot` to multi-component
+structures with a `components::Vector{Vector{Int}}` field.
 
-| **Zig** | https://ziglang.org
-| **Julia** | https://julialang.org
-| **Idris2 ABI** | https://www.idris-lang.org
-|===
+The constructor `trefoil()` returns a `Knot` with `crossing_number(k) == 3`
+and `dt.code == [4, 6, 2]`; `figure_eight()` has `crossing_number == 4`
+and `dt.code == [4, 6, 8, 2]`. Both are verified by the test suite.
+
+*Caveat:* PD code construction for arbitrary user-defined knots requires
+manual arc labelling following the KnotAtlas convention, which is
+non-trivial for non-experts. No GUI diagram editor is provided.
+
+=== Claim 2: "Jones, Alexander, Conway, and HOMFLY polynomial invariants"
+
+*True.* `src/KnotTheory.jl` exports `alexander_polynomial`, `jones_polynomial`,
+`conway_polynomial`, and `homfly_polynomial`. For the trefoil, the test suite
+verifies:
+
+* `alexander_polynomial(trefoil())` returns the standard `t^-1 - 1 + t`
+* `jones_polynomial(trefoil())` returns `-t^-4 + t^-3 + t^-1`
+
+Both are confirmed in the 701-line `test/runtests.jl`. The polynomials are
+represented using `Polynomials.jl`.
+
+*Caveat:* HOMFLY is a two-variable polynomial; its computation is exponential in
+crossing number. For knots beyond ~12 crossings the computation is impractical
+without specialised simplification. The package does not implement Kauffman
+bracket shortcuts for performance.
+
+=== Claim 3: "Reidemeister moves for diagram simplification"
+
+*True.* `simplify_pd`, `r1_simplify`, `r2_simplify`, and `r3_simplify` are
+exported. Each takes a `PlanarDiagram` and returns a reduced `PlanarDiagram`.
+The test suite verifies that the unknot's trivial diagram survives all
+three moves and that the trefoil's diagram is irreducible under R1/R2 alone
+(requiring R3 for full simplification).
+
+== How It Works
+
+The package is implemented in a single file `src/KnotTheory.jl`, with
+`src/backends/abstract.jl` as the only include. The entire implementation
+— roughly 1200 lines — covers:
+
+. *Type definitions:* `EdgeOrientation` enum, `Crossing`, `PlanarDiagram`,
+  `DTCode`, `Knot`, `Link`
+. *Canonical knots:* `unknot()`, `trefoil()`, `figure_eight()`, `cinquefoil()`
+  as wired-in constructors with correct PD and DT codes
+. *Invariant computation:* All polynomial invariants operate on `PlanarDiagram`
+  by expanding state sums or manipulating the Seifert matrix
+. *Seifert theory:* `seifert_circles`, `seifert_circles_with_map`,
+  `seifert_matrix`, `braid_index_estimate`, `signature`, `determinant`
+. *Simplification:* R1/R2/R3 Reidemeister moves via `simplify_pd`
+. *Braid words:* `from_braid_word`, `to_braid_word` for interconversion
+. *Persistence:* `write_knot_json`, `read_knot_json` (JSON3.jl)
+. *Lookup:* `knot_table`, `lookup_knot` for standard knot atlas entries
+
+AcceleratorGate dispatch is hooked via `backends/abstract.jl`; GPU paths
+are not yet operative.
+
+== Honest Caveats
+
+* Package is at 95% completion (TOPOLOGY.md). The one remaining gap is
+  the HOMFLY polynomial performance optimisation for large knots.
+* The knot table (`knot_table`) contains a small built-in set of classical
+  knots (unknot through 8-crossing knots). It is not a full KnotInfo import.
+* `plot_pd` is exported but requires `CairoMakie` as a weak dependency (listed
+  in `Project.toml` compat). Without CairoMakie loaded it returns a stub.
+* `to_graph` converts a `PlanarDiagram` to a `Graphs.jl` graph, but this
+  representation loses crossing-sign information; round-tripping is lossy.
+* The braid word algorithms assume the standard Artin generators; exotic
+  braid group representations are not supported.
 
 == Dogfooded Across The Account
 
-Uses the hyperpolymath ABI/FFI standard (Idris2 + Zig). Same pattern used across
-https://github.com/hyperpolymath/proven[proven],
-https://github.com/hyperpolymath/burble[burble], and
-https://github.com/hyperpolymath/gossamer[gossamer].
+[cols="2,3"]
+|===
+| Where | How KnotTheory is relevant
+
+| https://github.com/hyperpolymath/developer-ecosystem[developer-ecosystem]
+  `julia-ecosystem/`
+| KnotTheory demonstrates Julia's strength in abstract mathematics,
+  sitting alongside numerical packages in the Julia ecosystem showcase.
+  The single-file package pattern with weak-dep extensions is a template
+  for the Julia ecosystem.
+
+| https://github.com/hyperpolymath/statistease[statistease]
+| The Seifert matrix and signature computations in KnotTheory use
+  `LinearAlgebra.jl` operations (eigenvalues, determinants) that Statistease
+  also exercises; they share no code but validate the same Julia stdlib paths.
+
+| https://github.com/hyperpolymath/ephapax[ephapax]
+| Knot theory's category-theoretic structures (braid groups, Temperley-Lieb
+  algebra) are a natural application domain for Ephapax's linear type proofs.
+  KnotTheory's Idris2 ABI stubs anticipate this integration.
+
+| https://github.com/hyperpolymath/hypatia[hypatia]
+| Hypatia CI scans KnotTheory.jl for SPDX compliance and RSR antipatterns
+  on every push.
+|===
 
 == File Map
 
-[cols="1,2"]
+[cols="2,3"]
 |===
-| Path | What's There
+| Path | What is There
 
-| `src/` | Source code
-| `ffi/` | Foreign function interface
-| `test(s)/` | Test suite
+| `src/KnotTheory.jl`
+| Entire package (~1200 lines). Types, canonical knot constructors,
+  all invariants (Jones, Alexander, Conway, HOMFLY), Seifert theory,
+  Reidemeister simplification, braid word conversion, knot table,
+  JSON I/O, and graph/polynomial interop.
+
+| `src/backends/abstract.jl`
+| AcceleratorGate coprocessor-dispatch hook (GPU backend stub).
+
+| `src/abi/` (inside src/)
+| Not present at top-level; ABI directory is referenced in ABI-FFI-README.md
+  as a future addition.
+
+| `test/runtests.jl`
+| 701-line test file covering: all four canonical knot constructors (crossing
+  numbers, DT codes verified); PD code roundtrip; writhe; JSON I/O; all four
+  polynomial invariants against known values; Seifert circles; Reidemeister
+  moves; knot table lookup; braid word conversion.
+
+| `benches/benchmarks.jl`
+| BenchmarkTools suite for polynomial invariant computation (trefoil, figure
+  eight, cinquefoil), Seifert matrix construction, and R2 simplification.
+
+| `ffi/`
+| Zig FFI directory — structural stub per ABI-FFI-README.md.
+
+| `ext/`
+| CairoMakie extension entry point for `plot_pd` (weak dependency).
+
+| `tutorials/`
+| Step-by-step tutorials for knot construction, invariant calculation,
+  and Reidemeister simplification.
+
+| `scripts/`
+| Utility scripts for batch invariant computation over the built-in knot table.
+
+| `Project.toml`
+| Name `KnotTheory`, v1.0.1, MPL-2.0; deps: `AcceleratorGate`, `JSON3`,
+  `LinearAlgebra`, `Graphs`, `Polynomials`; compat includes CairoMakie 0.11-0.13
+  as a weak dep for `plot_pd`.
+
+| `PROOF-NEEDS.md`
+| Outstanding formal verification requirements for the polynomial invariant
+  algorithms (targets for future Idris2 ABI proofs).
+
+| `contractiles/`
+| Contractile interface definitions (RSR interoperability standard).
+
+| `stapeln.toml`
+| Stapeln container configuration for reproducible build environment.
 |===
 
 == Questions?
