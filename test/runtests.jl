@@ -75,9 +75,48 @@ using KnotTheory
         @test dt.code == [4, 6, 2]
         @test crossing_number(k) == 3
 
+        # Explicit conversion API.
+        dt_from_pd = to_dt(k.pd)
+        @test dt_from_pd isa DTCode
+        @test length(dt_from_pd.code) == length(k.pd.crossings)
+
+        pd_from_known_dt = from_dt(DTCode([4, 6, 2]))
+        @test pd_from_known_dt isa PlanarDiagram
+        @test length(pd_from_known_dt.crossings) == 3
+        @test determinant(pd_from_known_dt) == 3
+
         # DT-only knot still reports crossing number.
         k2 = Knot(:dt_only, nothing, DTCode([4, 6, 2]))
         @test crossing_number(k2) == 3
+        @test length(to_pd(k2).crossings) == 3
+    end
+
+    # -----------------------------------------------------------------------
+    # Conversion APIs (PD/DT/Gauss/Braid)
+    # -----------------------------------------------------------------------
+    @testset "Conversion APIs" begin
+        t = trefoil()
+
+        # PD -> DT -> PD
+        dt = to_dt(t.pd)
+        pd_dt_roundtrip = from_dt(dt)
+        @test pd_dt_roundtrip isa PlanarDiagram
+        @test length(pd_dt_roundtrip.crossings) == length(t.pd.crossings)
+
+        # PD -> Gauss -> PD
+        gauss = to_gauss(t.pd)
+        @test gauss isa GaussCode
+        @test length(gauss.code) == 2 * length(t.pd.crossings)
+        pd_gauss_roundtrip = from_gauss(gauss)
+        @test pd_gauss_roundtrip isa PlanarDiagram
+        @test length(pd_gauss_roundtrip.crossings) == length(t.pd.crossings)
+
+        # PD <-> braid via the canonical conversion entrypoint.
+        word = to_braid_word(t.pd)
+        @test !isempty(word)
+        pd_from_word = to_pd(word)
+        @test pd_from_word isa PlanarDiagram
+        @test length(pd_from_word.crossings) == length(split(word, "."))
     end
 
     # -----------------------------------------------------------------------

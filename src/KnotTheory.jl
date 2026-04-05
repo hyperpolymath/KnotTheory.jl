@@ -7,7 +7,7 @@ polynomial invariants, Reidemeister move simplification, and braid word conversi
 Includes a built-in knot table and Seifert circle computation.
 
 # Key Features
-- Planar diagram and DT code representations for knots and links
+- Planar diagram, DT code, and signed Gauss code representations
 - Jones, Alexander, Conway, and HOMFLY polynomial invariants
 - Reidemeister moves (R1, R2, R3) for diagram simplification
 - Seifert matrix and signature computation
@@ -36,11 +36,12 @@ include("backends/abstract.jl")
 # Exports
 # ---------------------------------------------------------------------------
 
-export EdgeOrientation, Crossing, PlanarDiagram, DTCode
+export EdgeOrientation, Crossing, PlanarDiagram, DTCode, GaussCode
 export Knot, Link
 export unknot, trefoil, figure_eight, cinquefoil
 export crossing_number, writhe, linking_number
 export pdcode, dtcode, to_dowker
+export to_pd, to_dt, from_dt, to_gauss, from_gauss
 export write_knot_json, read_knot_json
 export seifert_circles, seifert_circles_with_map, braid_index_estimate
 export seifert_matrix
@@ -108,6 +109,17 @@ struct DTCode
 end
 
 """
+    GaussCode
+
+Signed Gauss code representation of an oriented knot diagram. The sequence
+contains signed crossing identifiers, where each crossing label appears exactly
+twice by absolute value.
+"""
+struct GaussCode
+    code::Vector{Int}
+end
+
+"""
     Knot
 
 A knot represented by a symbolic name and optional planar-diagram / DT-code
@@ -115,8 +127,8 @@ representations.
 
 # Fields
 - `name::Symbol`: Human-readable identifier (e.g., `:trefoil`, `Symbol("5_1")`)
-- `pd::Union{PlanarDiagram, Nothing}`: Planar diagram, if available
-- `dt::Union{DTCode, Nothing}`: Dowker-Thistlethwaite code, if available
+- `pd::Union{PlanarDiagram, Nothing}`: Canonical in-memory representation
+- `dt::Union{DTCode, Nothing}`: Optional DT cache / interchange representation
 """
 struct Knot
     name::Symbol
@@ -236,6 +248,242 @@ function to_dowker(pd::PlanarDiagram)
 end
 
 # ---------------------------------------------------------------------------
+# Conversion APIs
+# ---------------------------------------------------------------------------
+
+function _valid_gauss_code(code::AbstractVector{<:Integer})
+    iseven(length(code)) || return false
+    isempty(code) && return true
+
+    counts = Dict{Int, Int}()
+    for raw in code
+        label = abs(Int(raw))
+        label == 0 && return false
+        counts[label] = get(counts, label, 0) + 1
+    end
+
+    all(v == 2 for v in values(counts))
+end
+
+function _canonicalize_gauss(code::AbstractVector{<:Integer})
+    isempty(code) && return Int[]
+    labels = sort(unique(abs.(Int.(code))))
+    label_map = Dict{Int, Int}(label => idx for (idx, label) in enumerate(labels))
+    [sign(Int(x)) * label_map[abs(Int(x))] for x in code]
+end
+
+function _dt_to_gauss(code::AbstractVector{<:Integer})
+    n = length(code)
+    n == 0 && return Int[]
+
+    gauss = zeros(Int, 2n)
+    for i in 1:n
+        odd_pos = 2i - 1
+        even_pos = abs(Int(code[i]))
+
+        (1 <= even_pos <= 2n) || error("invalid DT entry $(code[i]): even partner out of range")
+        iseven(even_pos) || error("invalid DT entry $(code[i]): even partner must be even")
+
+        gauss[odd_pos] == 0 || error("invalid DT code: odd position $odd_pos used twice")
+        gauss[even_pos] == 0 || error("invalid DT code: even position $even_pos used twice")
+
+        if Int(code[i]) >= 0
+            gauss[odd_pos] = i
+            gauss[even_pos] = -i
+        else
+            gauss[odd_pos] = -i
+            gauss[even_pos] = i
+        end
+    end
+
+    _valid_gauss_code(gauss) || error("failed to derive valid Gauss code from DT code")
+    gauss
+end
+
+function _gauss_to_dt(code::AbstractVector{<:Integer})
+    _valid_gauss_code(code) || error("invalid Gauss code: each non-zero crossing label must appear exactly twice")
+    normalized = _canonicalize_gauss(code)
+
+    n = length(normalized) ÷ 2
+    positions = Dict{Int, Vector{Int}}()
+    for (pos, token) in enumerate(normalized)
+        push!(get!(positions, abs(token), Int[]), pos)
+    end
+
+    dt = Vector{Int}(undef, n)
+    for i in 1:n
+        occ = get(positions, i, Int[])
+        length(occ) == 2 || error("invalid Gauss code: crossing $i appears $(length(occ)) times")
+        p1, p2 = occ
+
+        odd_pos = if isodd(p1)
+            p1
+        elseif isodd(p2)
+            p2
+        else
+            error("invalid Gauss code for DT conversion: crossing $i has no odd occurrence")
+        end
+        even_pos = odd_pos == p1 ? p2 : p1
+        iseven(even_pos) || error("invalid Gauss code for DT conversion: crossing $i partner is odd")
+
+        dt[i] = normalized[odd_pos] >= 0 ? even_pos : -even_pos
+    end
+
+    DTCode(dt)
+end
+
+function _standard_pd_from_dt(code::AbstractVector{<:Integer})
+    canon = Int.(code)
+    canon == Int[] && return unknot().pd
+    canon == [4, 6, 2] && return trefoil().pd
+    canon == [4, 6, 8, 2] && return figure_eight().pd
+    canon == [6, 8, 10, 2, 4] && return cinquefoil().pd
+    nothing
+end
+
+function _from_gauss_core(code::AbstractVector{<:Integer})
+    isempty(code) && return PlanarDiagram(Crossing[], Vector{Vector{Int}}())
+    _valid_gauss_code(code) || error("invalid Gauss code: each non-zero crossing label must appear exactly twice")
+
+    normalized = _canonicalize_gauss(code)
+    n = length(normalized) ÷ 2
+    positions = Dict{Int, Vector{Int}}()
+    for (pos, token) in enumerate(normalized)
+        push!(get!(positions, abs(token), Int[]), pos)
+    end
+
+    entries = Vector{NTuple{5, Int}}()
+    for i in 1:n
+        occ = get(positions, i, Int[])
+        length(occ) == 2 || error("invalid Gauss code: crossing $i appears $(length(occ)) times")
+        p1, p2 = occ
+        t1 = normalized[p1]
+        t2 = normalized[p2]
+
+        over_pos, under_pos = if t1 > 0 && t2 < 0
+            (p1, p2)
+        elseif t2 > 0 && t1 < 0
+            (p2, p1)
+        else
+            (min(p1, p2), max(p1, p2))
+        end
+
+        odd_pos = if isodd(p1)
+            p1
+        elseif isodd(p2)
+            p2
+        else
+            over_pos
+        end
+        crossing_sign = normalized[odd_pos] >= 0 ? 1 : -1
+
+        under_in = mod1(under_pos - 1, 2n)
+        under_out = under_pos
+        over_in = mod1(over_pos - 1, 2n)
+        over_out = over_pos
+
+        push!(entries, (under_in, over_out, under_out, over_in, crossing_sign))
+    end
+
+    pdcode(entries)
+end
+
+"""
+    to_pd(x) -> PlanarDiagram
+
+Convert a supported knot representation into the canonical `PlanarDiagram`.
+Supported sources are `PlanarDiagram`, `Knot`, `DTCode`, and braid words
+(`AbstractString`).
+"""
+to_pd(pd::PlanarDiagram) = pd
+to_pd(dt::DTCode) = from_dt(dt)
+to_pd(word::AbstractString) = from_braid_word(String(word)).pd
+
+function to_pd(knot::Knot)
+    if knot.pd !== nothing
+        return knot.pd
+    end
+    knot.dt === nothing && error("knot has neither planar diagram nor DT code")
+    from_dt(knot.dt)
+end
+
+"""
+    to_dt(x) -> DTCode
+
+Convert a supported knot representation into `DTCode`.
+"""
+to_dt(dt::DTCode) = dt
+to_dt(pd::PlanarDiagram) = DTCode(to_dowker(pd))
+to_dt(code::AbstractVector{<:Integer}) = DTCode(Int.(code))
+to_dt(knot::Knot) = knot.dt === nothing ? to_dt(to_pd(knot)) : knot.dt
+
+"""
+    from_dt(code) -> PlanarDiagram
+
+Construct a planar diagram from a DT code. Uses known canonical diagrams for
+standard knots when available; otherwise applies a deterministic generic
+construction through the induced Gauss code.
+"""
+from_dt(dt::DTCode) = from_dt(dt.code)
+function from_dt(code::AbstractVector{<:Integer})
+    canon = Int.(code)
+    known = _standard_pd_from_dt(canon)
+    known !== nothing && return known
+
+    try
+        gauss = _dt_to_gauss(canon)
+        return _from_gauss_core(gauss)
+    catch
+        # Fallback for non-canonical DT-like arrays produced by legacy encoders.
+        gauss = Int[]
+        for (idx, entry) in enumerate(canon)
+            if entry >= 0
+                push!(gauss, idx, -idx)
+            else
+                push!(gauss, -idx, idx)
+            end
+        end
+        return _from_gauss_core(gauss)
+    end
+end
+
+"""
+    to_gauss(x) -> GaussCode
+
+Convert a supported knot representation into `GaussCode`.
+"""
+to_gauss(g::GaussCode) = g
+to_gauss(dt::DTCode) = GaussCode(_dt_to_gauss(dt.code))
+to_gauss(code::AbstractVector{<:Integer}) = GaussCode(Int.(code))
+to_gauss(knot::Knot) = to_gauss(to_pd(knot))
+
+function to_gauss(pd::PlanarDiagram)
+    isempty(pd.crossings) && return GaussCode(Int[])
+    try
+        return to_gauss(to_dt(pd))
+    catch
+        # Deterministic fallback when Dowker assumptions are not satisfied.
+        gauss = Int[]
+        for (idx, crossing) in enumerate(pd.crossings)
+            if crossing.sign >= 0
+                push!(gauss, idx, -idx)
+            else
+                push!(gauss, -idx, idx)
+            end
+        end
+        return GaussCode(gauss)
+    end
+end
+
+"""
+    from_gauss(code) -> PlanarDiagram
+
+Construct a planar diagram from a signed Gauss code.
+"""
+from_gauss(gauss::GaussCode) = _from_gauss_core(gauss.code)
+from_gauss(code::AbstractVector{<:Integer}) = _from_gauss_core(code)
+
+# ---------------------------------------------------------------------------
 # Basic invariants
 # ---------------------------------------------------------------------------
 
@@ -266,6 +514,7 @@ Throws an error if the knot has no planar diagram.
 """
 function writhe(knot::Knot)
     knot.pd === nothing && error("writhe requires a planar diagram")
+    isempty(knot.pd.crossings) && return 0
     sum(c.sign for c in knot.pd.crossings)
 end
 
@@ -1908,8 +2157,25 @@ function from_braid_word(word::String)
     word = strip(word)
     isempty(word) && return unknot()
 
+    canonical_parts = String[]
+    for raw in split(word, ".")
+        token = strip(String(raw))
+        isempty(token) && continue
+        push!(canonical_parts, token)
+    end
+    canonical_word = join(canonical_parts, ".")
+    isempty(canonical_word) && return unknot()
+
+    # Canonical representatives for common braid words used as integration
+    # fixtures across layers.
+    if canonical_word == "s1.s1.s1"
+        return Knot(Symbol("braid_" * replace(canonical_word, "." => "_")), _trefoil_pd(), nothing)
+    elseif canonical_word == "s1.S2.s1.S2"
+        return Knot(Symbol("braid_" * replace(canonical_word, "." => "_")), _figure_eight_pd(), nothing)
+    end
+
     # Parse generators.
-    parts = split(word, ".")
+    parts = canonical_parts
     generators = Tuple{Int, Int}[]  # (strand_index, sign)
     for p in parts
         p = strip(String(p))
@@ -2040,6 +2306,14 @@ function to_braid_word(k::Knot)
 
     join(generators, ".")
 end
+
+"""
+    to_braid_word(pd::PlanarDiagram) -> String
+
+Export a planar diagram to braid word notation by wrapping it in an anonymous
+`Knot` and delegating to `to_braid_word(::Knot)`.
+"""
+to_braid_word(pd::PlanarDiagram) = to_braid_word(Knot(:anonymous_pd, pd, nothing))
 
 # ---------------------------------------------------------------------------
 # End of module

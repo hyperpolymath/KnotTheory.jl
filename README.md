@@ -36,7 +36,7 @@ println(jones_polynomial(k))       # -t^-4 + t^-3 + t^-1
 ## Features
 
 - **Planar diagram model** with oriented crossings and multi-component links.
-- **Code representations**: PD code, DT/Dowker code, JSON serialization.
+- **Code representations**: PD code, DT/Dowker code, signed Gauss code, JSON serialization.
 - **Classical invariants**: crossing number, writhe, linking number, signature, determinant.
 - **Polynomial invariants**: Alexander, Jones, Conway, and HOMFLY-PT.
 - **Seifert theory**: Seifert circles, Seifert matrix, braid index estimate.
@@ -57,6 +57,7 @@ println(jones_polynomial(k))       # -t^-4 + t^-3 + t^-1
 | `Crossing` | Single crossing with strand indices and orientation |
 | `PlanarDiagram` | Full planar diagram with crossings and components |
 | `DTCode` | Dowker-Thistlethwaite code representation |
+| `GaussCode` | Signed Gauss code representation |
 | `Knot` | Named knot wrapper (e.g. `trefoil()`) |
 | `Link` | Named link wrapper for multi-component objects |
 
@@ -68,8 +69,8 @@ println(jones_polynomial(k))       # -t^-4 + t^-3 + t^-1
 | `trefoil()` | Trefoil knot (3_1) |
 | `figure_eight()` | Figure-eight knot (4_1) |
 | `cinquefoil()` | Cinquefoil knot (5_1) |
-| `knot_table(name)` | Look up knot by standard name |
-| `lookup_knot(property, value)` | Search knot table by invariant value |
+| `knot_table()` | Return the built-in knot table |
+| `lookup_knot(name)` | Look up knot table entry by name |
 
 ### Classical Invariants
 
@@ -99,12 +100,17 @@ println(jones_polynomial(k))       # -t^-4 + t^-3 + t^-1
 | `seifert_matrix(pd)` | Seifert matrix computation |
 | `braid_index_estimate(pd)` | Lower bound on braid index from Seifert circles |
 
-### Codes & Serialization
+### Conversion & Serialization
 
 | Function | Description |
 |----------|-------------|
 | `pdcode(k)` | Planar diagram code (list of crossing tuples) |
 | `dtcode(k)` | Dowker-Thistlethwaite code |
+| `to_pd(x)` | Canonical conversion to planar diagram (`Knot`, `DTCode`, braid word) |
+| `to_dt(x)` | Convert to DT code |
+| `from_dt(dt)` | Convert DT code to planar diagram |
+| `to_gauss(x)` | Convert to signed Gauss code |
+| `from_gauss(g)` | Convert signed Gauss code to planar diagram |
 | `to_dowker(pd)` | Convert planar diagram to Dowker notation |
 | `write_knot_json(file, k)` | Serialize knot data to JSON |
 | `read_knot_json(file)` | Deserialize knot data from JSON |
@@ -122,8 +128,8 @@ println(jones_polynomial(k))       # -t^-4 + t^-3 + t^-1
 
 | Function | Description |
 |----------|-------------|
-| `from_braid_word(word)` | Construct planar diagram from braid word |
-| `to_braid_word(pd)` | Convert planar diagram to braid word |
+| `from_braid_word(word)` | Construct a knot from braid word |
+| `to_braid_word(k)` | Convert knot or planar diagram to braid word |
 
 ### Utilities
 
@@ -142,6 +148,19 @@ julia --project=. -e 'using Pkg; Pkg.test()'
 
 285 tests across 25 test sets covering all exported functions, invariant
 consistency, and known values from knot tables.
+
+## External Integration API
+
+For external consumers (for example `Skein.jl`), use this minimal surface:
+
+- `PlanarDiagram`, `Crossing`, `DTCode`, `GaussCode` (core representation types)
+- `to_pd`, `to_dt`, `to_gauss`, `from_dt`, `from_gauss` (pure conversions)
+- `crossing_number`, `writhe`, `seifert_circles`, `seifert_matrix`
+- `alexander_polynomial`, `jones_polynomial`, `conway_polynomial`, `homfly_polynomial`
+- `signature`, `determinant`
+- `simplify_pd`, `r1_simplify`, `r2_simplify`, `r3_simplify`
+
+This package intentionally does not include persistence, indexing, or database logic.
 
 ## Docs & Tutorials
 
