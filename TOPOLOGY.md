@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: PMPL-1.0-or-later -->
 <!-- TOPOLOGY.md — Project architecture map and completion dashboard -->
-<!-- Last updated: 2026-02-19 -->
+<!-- Last updated: 2026-04-14 -->
 
 # KnotTheory.jl — Project Topology
 
@@ -61,7 +61,7 @@ INVARIANTS
   Seifert Theory                    ██████████ 100%    Matrix & circles decomposition
 
 TRANSFORMS & INTEROP
-  Reidemeister Simplification       ██████████ 100%    R1, R2, R3 stability check
+  Reidemeister Simplification       ██████████ 100%    R1, R2, R3 live (r3_simplify: triangle detection + cyclic relabeling, 2026-04-13)
   Braid Word (TANGLE)               ██████████ 100%    Planar <-> Braid conversion
   JSON I/O                          ██████████ 100%    Serialization support
 
@@ -70,7 +70,7 @@ INFRASTRUCTURE
   .machine_readable/ (STATE.scm)    ██████████ 100%    Updated to v0.2.0
 
 ─────────────────────────────────────────────────────────────────────────────
-OVERALL:                            █████████░  ~95%   Stable Implementation
+OVERALL:                            ██████████  100%   Stable Implementation
 ```
 
 ## Key Dependencies
