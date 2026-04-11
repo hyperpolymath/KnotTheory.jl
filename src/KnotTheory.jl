@@ -937,19 +937,90 @@ end
 
 Apply Reidemeister III simplification: slide a strand past a crossing.
 
-Detects triangle configurations of three crossings where one strand can
-be isotoped past the crossing of the other two without changing the knot
-type. This is a topological move that rearranges crossings but does not
-change their count.
+Detects triangle configurations of three crossings and applies the R3 move
+when doing so enables subsequent R1 or R2 simplification (i.e. reduces the
+overall crossing count).  R3 alone is topology-preserving (it does not reduce
+crossing count), so a move is only committed when the resulting diagram admits
+at least one R1/R2 reduction; otherwise the diagram is returned unchanged.
 
-Note: R3 moves do not reduce crossing number but can enable subsequent
-R1 and R2 simplifications. The current implementation detects triangles
-but returns the diagram unchanged since R3 is topology-preserving and
-does not reduce complexity.
+# Algorithm
+
+A valid R3 triangle is a triple of crossings (Ci, Cj, Ck) such that:
+- Each pair of crossings shares exactly one arc.
+- The three shared arcs (inner arcs α, β, γ) are all distinct.
+- Since each arc in a valid PD appears in exactly two crossings, the inner
+  arcs appear *only* inside the triangle — outer arcs are unaffected.
+
+The R3 move is modelled as a cyclic relabeling of the three inner arcs.
+Both cyclic directions (α↦γ↦β and α↦β↦γ) are attempted.  For each
+candidate the diagram is tested under r1_simplify + r2_simplify; the first
+candidate that reduces the crossing count is kept and the function recurses
+to apply further R3 moves on the smaller diagram.
+
+# Complexity
+O(n³) per pass (n = crossing count).  For typical tangle diagrams (n ≤ 20)
+this is fast.  Recursion terminates because each accepted R3 strictly reduces
+the crossing count.
 """
 function r3_simplify(pd::PlanarDiagram)
-    # R3 does not reduce crossing count. Return unchanged.
-    pd
+    crossings = collect(pd.crossings)
+    n = length(crossings)
+    n < 3 && return pd
+
+    for i in 1:n
+        for j in (i + 1):n
+            for k in (j + 1):n
+                ci = crossings[i]
+                cj = crossings[j]
+                ck = crossings[k]
+
+                # Find arcs shared by each pair — must be exactly one each.
+                α_set = intersect(Set(ci.arcs), Set(cj.arcs))
+                β_set = intersect(Set(cj.arcs), Set(ck.arcs))
+                γ_set = intersect(Set(ck.arcs), Set(ci.arcs))
+
+                length(α_set) == 1 || continue
+                length(β_set) == 1 || continue
+                length(γ_set) == 1 || continue
+
+                α = first(α_set)
+                β = first(β_set)
+                γ = first(γ_set)
+
+                # Inner arcs must all be distinct.
+                (α != β && β != γ && α != γ) || continue
+
+                # Try both cyclic directions of the inner-arc relabeling.
+                #   Direction 1: α ↦ γ,  β ↦ α,  γ ↦ β
+                #   Direction 2: α ↦ β,  β ↦ γ,  γ ↦ α
+                for (new_α, new_β, new_γ) in ((γ, α, β), (β, γ, α))
+                    remap = Dict(α => new_α, β => new_β, γ => new_γ)
+
+                    new_crossings = [
+                        Crossing(
+                            (get(remap, c.arcs[1], c.arcs[1]),
+                             get(remap, c.arcs[2], c.arcs[2]),
+                             get(remap, c.arcs[3], c.arcs[3]),
+                             get(remap, c.arcs[4], c.arcs[4])),
+                            c.sign,
+                        )
+                        for c in crossings
+                    ]
+
+                    candidate = PlanarDiagram(new_crossings, pd.components)
+
+                    # Commit the R3 move only when it enables R1 or R2 reduction.
+                    simplified = r2_simplify(r1_simplify(candidate))
+                    if length(simplified.crossings) < n
+                        # Recurse: further R3 moves may now be possible.
+                        return r3_simplify(simplified)
+                    end
+                end
+            end
+        end
+    end
+
+    pd  # No beneficial R3 found.
 end
 
 """

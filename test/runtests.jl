@@ -369,13 +369,40 @@ using KnotTheory
     end
 
     # -----------------------------------------------------------------------
-    # R3 Simplification (topology-preserving, no crossing reduction)
+    # R3 Simplification
     # -----------------------------------------------------------------------
     @testset "R3 simplification" begin
+        # A pure triangle with no additional crossings: R3 rearranges but
+        # cannot expose any R2 bigon, so the crossing count is unchanged.
         pd = pdcode([(1, 2, 3, 4, 1), (3, 5, 6, 2, 1), (6, 4, 7, 5, 1)])
         reduced = r3_simplify(pd)
-        # R3 does not change crossing count, just rearranges.
         @test length(reduced.crossings) == length(pd.crossings)
+
+        # A 4-crossing diagram: three crossings form a valid R3 triangle
+        # (inner arcs 7, 8, 9) and a fourth crossing (C4) shares two outer
+        # arcs (1, 2) with C1, opposite sign.  R3 rearranges the triangle so
+        # that C1 and C4 become a bigon; R2 then removes them.
+        # Expected result: 4 → 2 crossings.
+        #
+        # Construction:
+        #   C1 = (1, 2, 7, 9, +1)  inner arcs: 7 (shared with C2), 9 (shared with C3)
+        #   C2 = (3, 4, 8, 7, +1)  inner arcs: 8 (shared with C3), 7 (shared with C1)
+        #   C3 = (5, 6, 9, 8, +1)  inner arcs: 9 (shared with C1), 8 (shared with C2)
+        #   C4 = (1, 10, 2, 11, -1) outer arcs 1, 2 coincide with C1's outer arcs
+        pd_r3 = pdcode([
+            (1, 2, 7, 9,  1),
+            (3, 4, 8, 7,  1),
+            (5, 6, 9, 8,  1),
+            (1, 10, 2, 11, -1),
+        ])
+        reduced_r3 = r3_simplify(pd_r3)
+        @test length(reduced_r3.crossings) < length(pd_r3.crossings)
+        @test length(reduced_r3.crossings) == 2
+
+        # Trefoil should be unaffected by r3_simplify (it has no R3 triangle
+        # that enables R1/R2 reduction — it is already minimal).
+        t = trefoil()
+        @test length(r3_simplify(t.pd).crossings) == 3
     end
 
     # -----------------------------------------------------------------------
