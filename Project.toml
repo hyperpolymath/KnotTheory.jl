@@ -13,6 +13,7 @@ Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
 
 [compat]
 AcceleratorGate = "0.1"
+BenchmarkTools = "1"
 julia = "1.9"
 JSON3 = "1"
 Graphs = "1"
@@ -55,7 +56,9 @@ KnotTheoryMathExt = "MathAccel"
 KnotTheoryCryptoExt = "CryptoAccel"
 
 [extras]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
+bench = ["BenchmarkTools"]
 test = ["Test"]
