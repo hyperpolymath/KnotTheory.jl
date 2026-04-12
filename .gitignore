@@ -1,5 +1,5 @@
 # RSR-compliant .gitignore
-/Manifest.toml
+# Manifest.toml is committed for reproducibility (research artifact)
 *.jl.cov
 *.jl.mem
 *.jl.*.cov
@@ -51,7 +51,7 @@ erl_crash.dump
 # Julia
 *.jl.cov
 *.jl.mem
-/Manifest.toml
+# Manifest.toml is committed for reproducibility (research artifact)
 
 
 # ReScript
