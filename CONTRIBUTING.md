@@ -69,7 +69,7 @@ Use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md) and include:
 ### Suggesting Features
 
 **Before suggesting**:
-1. Check the [roadmap](ROADMAP.md) if available
+1. Check the [roadmap](ROADMAP.adoc) if available
 2. Search existing issues and discussions
 3. Consider which perimeter the feature belongs to
 
