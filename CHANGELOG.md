@@ -1,4 +1,4 @@
-<!-- SPDX-License-Identifier: PMPL-1.0-or-later -->
+<!-- SPDX-License-Identifier: MPL-2.0 -->
 <!-- Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk> -->
 
 # Changelog — KnotTheory.jl
@@ -24,7 +24,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 - Migrated SCM files to A2ML format in `.machine_readable/6a2/`
-- License migration: AGPL-3.0 → PMPL-1.0-or-later (source) / MPL-2.0 (LICENSE file)
+- License migration: AGPL-3.0 → MPL-2.0 (source) / MPL-2.0 (LICENSE file)
 
 ## [1.0.0]
 
