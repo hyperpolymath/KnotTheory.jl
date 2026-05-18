@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 // SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
 = KnotTheory.jl
@@ -8,7 +8,7 @@
 image:https://img.shields.io/badge/Project-Topology-9558B2[Project Topology,link="TOPOLOGY.md"]
 image:https://img.shields.io/badge/Completion-100%25-brightgreen[Completion Status,link="TOPOLOGY.md"]
 image:https://img.shields.io/badge/OpenSSF-Best_Practices-green?logo=opensourcesecurity[OpenSSF Best Practices,link="https://www.bestpractices.dev/en/projects/new?repo_url=https://github.com/hyperpolymath/KnotTheory.jl"]
-image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License,link="LICENSE"]
+image:https://img.shields.io/badge/License-MPL--2.0-blue.svg[License,link="LICENSE"]
 image:https://api.thegreenwebfoundation.org/greencheckimage/github.com[Green Web,link="https://www.thegreenwebfoundation.org/green-web-check/?url=github.com"]
 
 A comprehensive Julia toolkit for computational knot theory: planar diagram
@@ -226,5 +226,5 @@ This package intentionally does not include persistence, indexing, or database l
 
 == License
 
-SPDX-License-Identifier: PMPL-1.0-or-later +
+SPDX-License-Identifier: MPL-2.0
 See link:LICENSE[LICENSE].
