@@ -226,5 +226,5 @@ This package intentionally does not include persistence, indexing, or database l
 
 == License
 
-SPDX-License-Identifier: MPL-2.0 +
+SPDX-License-Identifier: MPL-2.0
 See link:LICENSE[LICENSE].
