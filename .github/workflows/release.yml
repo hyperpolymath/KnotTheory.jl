@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
 name: Release
-
 on:
   push:
     tags:
@@ -10,56 +9,48 @@ on:
       version:
         description: 'Version to release (e.g., v0.1.0)'
         required: true
-
 permissions:
   contents: write
   id-token: write
-
 jobs:
   build:
     name: Build Package
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         julia-version: ['1.10']
-
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
 
       - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
         with:
           version: ${{ matrix.julia-version }}
-
       - uses: julia-actions/cache@98ad0c96108a5cbce68768b00fc3a228892105bf # v2
-
       - name: Build and test
         run: |
           julia --project -e 'using Pkg; Pkg.build(); Pkg.test()'
-
       - name: Package artifacts
         run: |
           mkdir -p dist
           tar -czf dist/KnotTheory.jl-${{ matrix.os }}.tar.gz src/ Project.toml README.* LICENSE
-
       - name: Upload artifacts
         uses: actions/upload-artifact@ea165f8d65b6db9a8b71b5c2d1a090c0daf9c8bb # v4
         with:
           name: package-${{ matrix.os }}
           path: dist/
-
   sbom:
     name: Generate SBOM
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: build
-
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
 
       - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
         with:
           version: '1.10'
-
       - name: Generate SBOM
         run: |
           julia --project -e '
@@ -89,33 +80,28 @@ jobs:
               JSON.print(f, sbom, 2)
             end
           '
-
       - name: Upload SBOM
         uses: actions/upload-artifact@ea165f8d65b6db9a8b71b5c2d1a090c0daf9c8bb # v4
         with:
           name: sbom
           path: sbom.json
-
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [build, sbom]
-
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-
       - name: Download artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: release-artifacts/
-
       - name: Prepare release
         run: |
           mkdir -p release
           find release-artifacts -type f -exec cp {} release/ \;
           cd release
           sha256sum * > checksums.txt
-
       - name: Extract version
         id: version
         run: |
@@ -124,7 +110,6 @@ jobs:
           else
             echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           fi
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
         with:
