@@ -101,7 +101,7 @@ using LinearAlgebra
     @testset "knot_table entries: DT code length equals crossing number" begin
         table = knot_table()
         for _ in 1:30
-            entry = rand(values(table))
+            entry = rand(collect(values(table)))
             @test length(entry.dt) == entry.crossings
         end
     end
