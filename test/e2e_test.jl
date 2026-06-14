@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-// Owner: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+# Owner: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 # E2E pipeline tests for KnotTheory.jl.
 # Tests the full pipeline: PD code construction → invariant computation →
 # simplification → JSON serialisation → round-trip recovery.

@@ -15,8 +15,17 @@ jobs:
       - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
         with:
           version: ${{ matrix.julia-version }}
+      # KnotTheory depends on the unregistered estate package AcceleratorGate.jl
+      # as a path-dep (Manifest: ../AcceleratorGate.jl) — clone it as a sibling.
+      - name: Check out sibling estate path-dep
+        run: git clone --depth 1 https://github.com/hyperpolymath/AcceleratorGate.jl.git ../AcceleratorGate.jl
+      # The committed Manifest.toml is resolved with a specific Julia version, so
+      # discard it and re-resolve fresh for this matrix's Julia (1.9/1.10/1.11),
+      # devving the path-dep (does not alter Project.toml).
       - name: Install dependencies
-        run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
+        run: |
+          rm -f Manifest.toml
+          julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path="../AcceleratorGate.jl")); Pkg.instantiate()'
       - name: Run tests
         run: julia --project=. -e 'using Pkg; Pkg.test()'
 permissions:

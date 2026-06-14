@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-// Owner: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+# Owner: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 # Property-based invariant tests for KnotTheory.jl.
 
 using Test
@@ -101,7 +101,7 @@ using LinearAlgebra
     @testset "knot_table entries: DT code length equals crossing number" begin
         table = knot_table()
         for _ in 1:30
-            entry = rand(values(table))
+            entry = rand(collect(values(table)))
             @test length(entry.dt) == entry.crossings
         end
     end
