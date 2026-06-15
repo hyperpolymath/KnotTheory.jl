@@ -44,7 +44,7 @@ If you cannot use GitHub Security Advisories, you may email us directly:
 
 | | |
 |---|---|
-| **Email** | 6759885+hyperpolymath@users.noreply.github.com |
+| **Email** | j.d.a.jewell@open.ac.uk |
 
 > **⚠️ Important:** Do not report security vulnerabilities through public GitHub issues, pull requests, discussions, or social media.
 
@@ -355,7 +355,7 @@ When using KnotTheory.jl, we recommend:
 
 | Purpose | Contact |
 |---------|---------|
-| **Security issues** | [Report via GitHub](https://github.com/hyperpolymath/KnotTheory.jl/security/advisories/new) or 6759885+hyperpolymath@users.noreply.github.com |
+| **Security issues** | [Report via GitHub](https://github.com/hyperpolymath/KnotTheory.jl/security/advisories/new) or j.d.a.jewell@open.ac.uk |
 | **General questions** | [GitHub Discussions](https://github.com/hyperpolymath/KnotTheory.jl/discussions) |
 | **Other enquiries** | See [README](README.md) for contact information |
 
