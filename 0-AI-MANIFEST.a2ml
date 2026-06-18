@@ -1,0 +1,12 @@
+; SPDX-License-Identifier: MPL-2.0
+; 0-AI-MANIFEST.a2ml — KnotTheory.jl
+
+[ai-contract]
+purpose = "Mathematical knot theory library for Julia — planar-diagram / DT / signed-Gauss representations, polynomial invariants (Jones, Alexander, Conway, HOMFLY), Reidemeister (R1/R2/R3) simplification, braid words, knot table, Seifert circles. Consumed as a weakdep/extension provider by Skein.jl."
+agent-may = "edit src/, test/, ext/, docs/, CHANGELOG.md, .machine_readable/6a2/"
+agent-may-not = "edit LICENSE / SECURITY.md without explicit user confirmation; use C-style // comments in Julia or Justfiles (use #)"
+agent-must-after = "code-edit -> real Pkg.test() run"
+
+[escalation]
+breaking-changes = "open ADR; respect 6a2/META.a2ml decisions"
+schema-drift-in-6a2 = "Open issue against hyperpolymath/standards; do not silently reshape this repo's 6a2 files"
