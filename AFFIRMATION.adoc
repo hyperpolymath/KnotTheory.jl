@@ -1,0 +1,136 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= AFFIRMATION — KnotTheory.jl, as of 2026-06-19
+:toc: macro
+:toclevels: 2
+
+_the No-Bullshit file: what we affirm was true and checkable at this moment_
+
+[NOTE]
+====
+*Genre.* An *affirmation* is a solemn declaration of the truth of a statement,
+made by someone who _declines to swear an oath_ — our truth-as-best-believed at a
+stamped instant, binding on our honesty, not a claim of infallibility. It is not
+the README (where this is going) and not the EXPLAINME (how it is built). Every
+repo in the estate carries one, per the 2026-06-19 estate rule.
+====
+
+toc::[]
+
+== What this is, and how it works
+
+A short, dated, jointly-signed snapshot of what we can _honestly and verifiably_
+claim about the KnotTheory.jl repo at one exact commit. *Ground truth, not
+memory:* the gate results below were produced by running the checks this session.
+*Material caveat:* `just` and *`julia` are absent* this session, so the RSR/
+contractile gates were run *as bash* and the Julia package and its test suite
+**were not executed**. *No intentional overclaim;* the owner's signed commit is
+authoritative (the AI party cannot GPG-sign).
+
+== Verifiable anchor
+
+[cols="1,3"]
+|===
+| *Repo*        | `hyperpolymath/KnotTheory.jl` — the knot-theory *mathematics* library of the estate (knot invariants / tables), consumed by Skein.jl as an optional weak-dependency
+| *Branch*      | `claude/practical-newton-9eFe2` (feature branch; not anchored to `main`)
+| *Commit (HEAD)* | `7b26d38` (full SHA in `git rev-parse HEAD`)
+| *Permalink*   | https://github.com/hyperpolymath/KnotTheory.jl/tree/7b26d38
+| *Verified*    | 2026-06-19 (checks run this session; date, not a claimed UTC instant)
+| *Working-tree delta* | Clean except this untracked `AFFIRMATION.adoc`. HEAD is one commit ahead of `main` (a Hypatia root-hygiene commit adding `0-AI-MANIFEST.a2ml`).
+| *Toolchain (present)* | `git`, `Agda 2.6.3`, `rustc`. *Absent:* `just`, `julia`, `deno`.
+| *Run method*  | `contractile`/RSR gate bodies as bash. *Julia package/tests not executed* (no `julia`).
+| *HEAD signature* | Not signed by the AI party; the maintainer's signed commit is authoritative.
+|===
+
+== Companion documents (cross-check)
+
+* *`README.adoc`* — present and cleanly instantiated: `= KnotTheory.jl`.
+* *`EXPLAINME.adoc`* — present and cleanly instantiated: `= KnotTheory.jl — Show
+  Me The Receipts`.
+* *`Project.toml`* — `name = "KnotTheory"`, `version = "1.0.1"` (a tagged release).
+* *Template residue* — *4 files* with `{{PLACEHOLDER}}` tokens + *8 files*
+  referencing `rsr-template-repo`. Minor instantiation debt — noted, not hidden.
+* *GitHub description / topics* — not fetched this session.
+
+== The honest state (one breath)
+
+KnotTheory.jl is a *real, shipping* Julia knot-theory mathematics library —
+`KnotTheory` *v1.0.1* (the most mature version number in the estate so far),
+~2394 lines across `src/` (`KnotTheory.jl` + `backends/`), with a real test tree
+(`runtests.jl`, `e2e_test.jl`, `property_test.jl`). It is the *pure-mathematics
+companion* that Skein.jl consumes as an optional weak-dependency. The `MUST`/
+`TRUST` gates pass and instantiation is clean bar minor residue. The honest limits
+are about *assurance*: it self-grades READINESS *C*, has obligations recorded in
+`PROOF-NEEDS.md`, and *its Julia test suite was not run this session* (no `julia`).
+
+== What is solid (and how we checked)
+
+* *MUST/TRUST-style checks — PASS.* Run as bash: LICENSE present; no banned
+  `Dockerfile`/`Makefile`; SPDX headers on the sampled 100 `.jl` files (0
+  unheadered); LICENSE carries an SPDX/MPL identifier; no `.env` /
+  `credentials.json`.
+* *Real, shipped content.* `src/KnotTheory.jl` + `backends/` (~2394 lines), a real
+  test tree, at a tagged `v1.0.1`. This is shipped engineering, not a template
+  skeleton.
+
+== Known-incomplete but honestly fenced
+
+* *READINESS grade `C`.* `READINESS.md` self-assesses *Current Grade: C* —
+  reported as-is.
+* *Obligations open.* `PROOF-NEEDS.md` is present and records outstanding
+  mathematical/systems obligations; no claim of formal proof is made here.
+* *Minor residue.* 4 `{{PLACEHOLDER}}` files + 8 `rsr-template-repo` references.
+
+== Outstanding / not-run (no spin)
+
+* *The Julia test suite was NOT executed this session.* `julia` is absent, so
+  `test/runtests.jl` and friends were *not run*. We affirm the test *files exist*;
+  we do *not* affirm, from this session, that they currently pass. A `julia
+  --project=. -e 'using Pkg; Pkg.test()'` run in-environment is the authoritative
+  check.
+
+== Reproduce it yourself
+
+[source,bash]
+----
+git rev-parse HEAD          # expect 7b26d38…
+test -f LICENSE; test ! -f Dockerfile -a ! -f Makefile; grep -q 'SPDX\|MPL' LICENSE
+grep -E '^name|^version' Project.toml ; ls src/ test/
+# NOT runnable without julia (the honest gap):
+#   julia --project=. -e 'using Pkg; Pkg.test()'
+----
+
+== One-line characterisation (quote this)
+
+"KnotTheory.jl is the knot-theory mathematics library of the estate — a shipping
+Julia package (`KnotTheory` v1.0.1; ~2394 lines src; real test tree) that Skein.jl
+consumes as an optional weak-dependency. `MUST`/`TRUST` gates pass and
+instantiation is clean bar minor residue (4 placeholders, 8 `rsr-template-repo`
+refs); READINESS self-grades `C` with obligations in `PROOF-NEEDS.md`. Honest gap:
+`julia` is absent this session, so the test suite was *not run* — files exist,
+pass-state unconfirmed here. No intentional overclaim."
+
+== Key concern + cross-repo wiring
+
+KnotTheory.jl's *key concern* is being the *pure knot-theory mathematics library*
+— invariants and tables — kept deliberately separate from persistence/engine
+concerns. Skein.jl consumes it as a *weak-dependency* (an optional package
+extension, never a hard dep). Per the estate rule it carries its own scope table
+at `docs/identity-fabric/musts-intends-wishes.adoc`. Relative to the KRL stack
+(*krl → tangle/TangleIR → VerisimCore → Skein.jl / quandledb*), KnotTheory.jl is a
+*computational dependency of Skein.jl* (the engine), not a stack layer itself.
+Adjacent: *Skein.jl* (engine + persistence that may use this library), *quandledb*
+(equivalence face), *tangle* (TangleIR), *krl* (resolution DSL), *echo-types*
+(structured-loss theory + identity-fabric framing). See `../../AFFIRMATION.adoc`.
+
+== Joint attestation
+
+To the best of our joint belief at the timestamp above, every claim here is true
+and was checked as described — with the un-run Julia suite stated rather than
+hidden.
+
+* *Engineering party (AI):* ran the gate/RSR checks recorded here as bash on
+  2026-06-19; did *not* run the Julia test suite (no `julia`).
+* *Owner / maintainer:* Jonathan D.A. Jewell — signs by committing this file with
+  `-S`; the signed commit at the SHA above is authoritative.
+* *Signed-off-date:* (fill on signing)

@@ -1,0 +1,68 @@
+// SPDX-License-Identifier: MPL-2.0
+// SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= KnotTheory.jl — Normative Scope (Must / Intend / Wish)
+:toc: preamble
+:revdate: 2026-06-19
+
+[abstract]
+Per-repo normative-scope record for KnotTheory.jl (the knot-theory mathematics
+library — invariants and tables — consumed by Skein.jl as a weak-dependency).
+Estate rule (2026-06-19): every repo carries its own scoped table; crossover
+content is duplicated and marked until resolved, then wired into the other
+relevant repos. `◇` marks proposals not yet canonical.
+
+== Stack relationship (2026-06-19)
+
+[literal]
+krl → tangle/TangleIR → VerisimCore → Skein.jl / quandledb
+                                        └── weak-dep ── KnotTheory.jl (this library)
+
+KnotTheory.jl is a *computational dependency of Skein.jl*, not a stack layer —
+the pure-mathematics companion the engine may optionally use.
+
+== Levels
+
+* *MUST* — required to be what it is (RFC 2119 normative).
+* *INTEND* — committed direction.
+* *WISH* — aspirational.
+
+== KnotTheory.jl (own)
+
+[cols="1,5", options="header"]
+|===
+| Level | KnotTheory.jl
+
+| *MUST*
+| Be the *pure knot-theory mathematics library* — knot invariants and tables —
+  kept deliberately separate from persistence/engine concerns; remain consumable
+  by Skein.jl as a *weak-dependency / package extension* (never forcing itself as
+  a hard dependency on consumers); SPDX/REUSE compliance; keep the tagged release
+  line honest (currently `v1.0.1`); the test baseline green before any release.
+
+| *INTEND*
+| Raise READINESS above `C`; discharge the obligations recorded in
+  `PROOF-NEEDS.md` (mathematical correctness of invariants/tables); clear the
+  residual template debt (4 `{{PLACEHOLDER}}` files + 8 `rsr-template-repo`
+  references); keep the Skein.jl integration surface (the `KnotTheoryExt`
+  extension) stable as both packages evolve.
+
+| *WISH*
+| Broader invariant coverage and verified knot tables ◇; a clean mathematical
+  spec that downstream tools (Skein.jl, quandledb) can cite as ground truth for
+  equivalence/identity ◇.
+|===
+
+== Cross-repo wiring
+
+KnotTheory.jl supplies the *mathematics*; Skein.jl is the *engine* that computes
+and persists invariants (optionally using this library via `KnotTheoryExt`);
+quandledb is the *equivalence/identity face*. The load-bearing shared invariant
+across the stack is *equivalence-integrity* (the `a = a` idem core) — KnotTheory.jl
+contributes the underlying invariant mathematics that makes a computed equivalence
+meaningful.
+
+Sibling repos' key concerns (keep in sync as crossover resolves): *Skein.jl* —
+computational engine + persistence (consumes this library); *quandledb* —
+equivalence / identity face; *tangle* — TangleIR + type-safe core; *krl* —
+resolution DSL surface; *echo-types* — structured-loss theory + the identity-fabric
+framing (Conway·Fichte / Bruner / Ricoeur). See `../../AFFIRMATION.adoc`.
