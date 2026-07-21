@@ -886,6 +886,15 @@ Detects pairs of crossings (i, j) where:
 When a bigon pair is found, both crossings are removed and their external
 arcs are reconnected. The process repeats until no more R2 pairs exist.
 """
+# Path-halving-free union-find lookup over a sparse parent map (labels
+# absent from the map are their own roots).
+function _r2_uf_find(parent::Dict{Int, Int}, x::Int)
+    while get(parent, x, x) != x
+        x = parent[x]
+    end
+    x
+end
+
 function r2_simplify(pd::PlanarDiagram)
     crossings = collect(pd.crossings)
     changed = true
@@ -893,24 +902,58 @@ function r2_simplify(pd::PlanarDiagram)
         changed = false
         n = length(crossings)
         to_remove = Set{Int}()
+        remap = Dict{Int, Int}()
 
-        # Find R2 pairs: two crossings sharing exactly 2 arcs, opposite signs.
+        # Find an R2 pair: two crossings sharing exactly 2 arcs, opposite signs.
         for i in 1:n
-            i in to_remove && continue
             for j in (i+1):n
-                j in to_remove && continue
                 ci = crossings[i]
                 cj = crossings[j]
                 # Must have opposite signs.
                 ci.sign + cj.sign != 0 && continue
 
+                # A kinked crossing (repeated arc label) is R1 territory.
+                (length(Set(ci.arcs)) < 4 || length(Set(cj.arcs)) < 4) && continue
+
                 # Find shared arcs.
-                arcs_i = Set(ci.arcs)
-                arcs_j = Set(cj.arcs)
-                shared = intersect(arcs_i, arcs_j)
+                shared = intersect(Set(ci.arcs), Set(cj.arcs))
                 length(shared) != 2 && continue
 
-                # This is an R2 bigon -- mark both for removal.
+                # Removing the pair severs each strand where it entered the
+                # bigon. Union the four strand-through segments of the two
+                # crossings (under: arcs[1]-arcs[3], over: arcs[2]-arcs[4]);
+                # every connected class of arc labels collapses to a single
+                # arc afterwards, so its external members (labels not shared
+                # between the pair) merge under one label. A class with no
+                # external member is a closed circle vanishing with the pair
+                # and needs no relabelling.
+                parent = Dict{Int, Int}()
+                for (u, v) in ((ci.arcs[1], ci.arcs[3]), (ci.arcs[2], ci.arcs[4]),
+                               (cj.arcs[1], cj.arcs[3]), (cj.arcs[2], cj.arcs[4]))
+                    ru = _r2_uf_find(parent, u)
+                    rv = _r2_uf_find(parent, v)
+                    ru != rv && (parent[ru] = rv)
+                end
+                labels = Set(vcat(collect(ci.arcs), collect(cj.arcs)))
+                classes = Dict{Int, Set{Int}}()
+                for l in labels
+                    push!(get!(classes, _r2_uf_find(parent, l), Set{Int}()), l)
+                end
+                ok = true
+                merges = Tuple{Int, Int}[]
+                for cls in values(classes)
+                    ext = [l for l in cls if !(l in shared)]
+                    if length(ext) == 2
+                        push!(merges, (maximum(ext), minimum(ext)))
+                    elseif !isempty(ext)
+                        ok = false  # malformed input; leave the pair alone
+                    end
+                end
+                ok || continue
+                for (from, to) in merges
+                    remap[from] = to
+                end
+
                 push!(to_remove, i)
                 push!(to_remove, j)
                 changed = true
@@ -920,13 +963,16 @@ function r2_simplify(pd::PlanarDiagram)
         end
 
         if changed
-            new_crossings = Crossing[]
-            for (i, c) in enumerate(crossings)
-                if !(i in to_remove)
-                    push!(new_crossings, c)
-                end
-            end
-            crossings = new_crossings
+            crossings = [
+                Crossing(
+                    (get(remap, c.arcs[1], c.arcs[1]),
+                     get(remap, c.arcs[2], c.arcs[2]),
+                     get(remap, c.arcs[3], c.arcs[3]),
+                     get(remap, c.arcs[4], c.arcs[4])),
+                    c.sign,
+                )
+                for (i, c) in enumerate(crossings) if !(i in to_remove)
+            ]
         end
     end
 
@@ -2289,19 +2335,23 @@ function from_braid_word(word::String)
         next_arc += 2
 
         # Build crossing in KnotAtlas PD convention X[a,b,c,d]:
-        # Under-strand: a -> c, Over-strand: d -> b
+        # Under-strand: a -> c, Over-strand: d -> b.
+        # A braid generator SWAPS the strands at positions i and i+1: the
+        # strand entering at position i exits at position i+1 and vice versa
+        # (arc_out_i is the outgoing arc at POSITION i, which the strand
+        # entering at position i+1 continues onto).
         if gen_sign > 0
-            # Positive: strand i goes over strand i+1.
-            # Over-strand: arc_in_i -> arc_out_i  (strand i)
-            # Under-strand: arc_in_i1 -> arc_out_i1 (strand i+1)
+            # Positive: strand entering at i goes over, exiting at i+1.
+            # Over-strand: arc_in_i -> arc_out_i1
+            # Under-strand: arc_in_i1 -> arc_out_i
             # X[under_in, over_out, under_out, over_in]
-            push!(crossings, Crossing((arc_in_i1, arc_out_i, arc_out_i1, arc_in_i), 1))
+            push!(crossings, Crossing((arc_in_i1, arc_out_i1, arc_out_i, arc_in_i), 1))
         else
-            # Negative: strand i+1 goes over strand i.
-            # Over-strand: arc_in_i1 -> arc_out_i1 (strand i+1)
-            # Under-strand: arc_in_i -> arc_out_i (strand i)
+            # Negative: strand entering at i+1 goes over, exiting at i.
+            # Over-strand: arc_in_i1 -> arc_out_i
+            # Under-strand: arc_in_i -> arc_out_i1
             # X[under_in, over_out, under_out, over_in]
-            push!(crossings, Crossing((arc_in_i, arc_out_i1, arc_out_i, arc_in_i1), -1))
+            push!(crossings, Crossing((arc_in_i, arc_out_i, arc_out_i1, arc_in_i1), -1))
         end
 
         # Update current arcs for the strands.
