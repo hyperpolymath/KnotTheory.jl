@@ -1173,7 +1173,114 @@ function _poly_det(M::Matrix{Vector{Int}}, n::Int)
     if n == 2
         return _poly_sub(_poly_mul(M[1,1], M[2,2]), _poly_mul(M[1,2], M[2,1]))
     end
-    # Cofactor expansion along first row.
+    _poly_det_bareiss(M, n)
+end
+
+"""
+    _poly_trim(a::Vector{Int}) -> Vector{Int}
+
+Strip trailing zero coefficients (the zero polynomial trims to `Int[]`).
+"""
+function _poly_trim(a::Vector{Int})
+    n = length(a)
+    while n > 0 && a[n] == 0
+        n -= 1
+    end
+    a[1:n]
+end
+
+_poly_iszero(a::Vector{Int}) = all(iszero, a)
+
+"""
+    _poly_divexact(a::Vector{Int}, b::Vector{Int}) -> Vector{Int}
+
+Exact division of polynomial `a` by polynomial `b` over ℤ[t]. The caller
+must guarantee divisibility (as the Bareiss recurrence does); a non-exact
+division throws rather than silently truncating.
+"""
+function _poly_divexact(a::Vector{Int}, b::Vector{Int})
+    a = _poly_trim(a)
+    b = _poly_trim(b)
+    isempty(a) && return Int[]
+    isempty(b) && throw(ArgumentError("polynomial division by zero"))
+    b == [1] && return a
+    length(a) < length(b) && throw(ArgumentError("non-exact polynomial division"))
+    q = zeros(Int, length(a) - length(b) + 1)
+    r = copy(a)
+    bl = b[end]
+    for i in length(q):-1:1
+        num = r[i + length(b) - 1]
+        num % bl == 0 || throw(ArgumentError("non-exact polynomial division"))
+        c = num ÷ bl
+        q[i] = c
+        c == 0 && continue
+        for j in 1:length(b)
+            r[i + j - 1] -= c * b[j]
+        end
+    end
+    _poly_iszero(r) || throw(ArgumentError("non-exact polynomial division"))
+    q
+end
+
+"""
+    _poly_det_bareiss(M::Matrix{Vector{Int}}, n::Int) -> Vector{Int}
+
+Fraction-free (Bareiss) determinant over ℤ[t]: O(n³) polynomial operations
+instead of the O(n!) of cofactor expansion (#46 — cofactor made a
+16-crossing Alexander computation run past GitHub's 6-hour CI limit).
+Every division in the Bareiss recurrence is exact over an integral domain,
+so all intermediates stay in ℤ[t].
+"""
+function _poly_det_bareiss(M::Matrix{Vector{Int}}, n::Int)
+    A = Matrix{Vector{Int}}(undef, n, n)
+    for i in 1:n, j in 1:n
+        A[i, j] = _poly_trim(M[i, j])
+    end
+    sign = 1
+    prev = [1]
+    for k in 1:(n - 1)
+        # Pivot: first row at or below k with a nonzero leading entry.
+        piv = 0
+        for r in k:n
+            if !isempty(A[r, k])
+                piv = r
+                break
+            end
+        end
+        piv == 0 && return Int[]  # zero column ⟹ zero determinant
+        if piv != k
+            for c in 1:n
+                A[k, c], A[piv, c] = A[piv, c], A[k, c]
+            end
+            sign = -sign
+        end
+        for i in (k + 1):n
+            for j in (k + 1):n
+                num = _poly_sub(_poly_mul(A[k, k], A[i, j]),
+                                _poly_mul(A[i, k], A[k, j]))
+                A[i, j] = _poly_divexact(num, prev)
+            end
+            A[i, k] = Int[]
+        end
+        prev = A[k, k]
+    end
+    d = A[n, n]
+    sign == -1 ? Int[-c for c in d] : d
+end
+
+"""
+    _poly_det_cofactor(M::Matrix{Vector{Int}}, n::Int) -> Vector{Int}
+
+Reference O(n!) cofactor-expansion determinant. Retained ONLY as the
+oracle for the Bareiss equivalence tests — never call it on matrices
+larger than ~8×8.
+"""
+function _poly_det_cofactor(M::Matrix{Vector{Int}}, n::Int)
+    n == 0 && return [1]
+    n == 1 && return M[1, 1]
+    if n == 2
+        return _poly_sub(_poly_mul(M[1,1], M[2,2]), _poly_mul(M[1,2], M[2,1]))
+    end
     result = Int[]
     for j in 1:n
         minor = Matrix{Vector{Int}}(undef, n-1, n-1)
@@ -1185,7 +1292,7 @@ function _poly_det(M::Matrix{Vector{Int}}, n::Int)
                 minor[r-1, col] = M[r, c]
             end
         end
-        cofactor = _poly_det(minor, n-1)
+        cofactor = _poly_det_cofactor(minor, n-1)
         term = _poly_mul(M[1, j], cofactor)
         if isodd(j)
             result = _poly_add(result, term)
@@ -1402,9 +1509,22 @@ function alexander_polynomial(pd::PlanarDiagram)
         poly = shifted
     end
 
-    # Normalize sign: ensure the coefficient of the highest power is positive.
-    max_e2 = maximum(keys(poly))
-    if poly[max_e2] < 0
+    # Normalize sign to the Conway normalisation: Delta(1) = +1. For a knot
+    # Delta(1) = ±1, and choosing +1 is what makes the derived Conway
+    # polynomial satisfy nabla(0) = 1 (its defining normalisation). The old
+    # rule here — "highest-power coefficient positive" — agrees for the
+    # trefoil but picks the WRONG unit for e.g. the figure-eight
+    # (t - 3 + t^{-1} has Delta(1) = -1, so conway came out -(1 - z^2)).
+    # Fall back to leading-coefficient-positive only when Delta(1) = 0
+    # (split/multi-component links, where the Conway sign is not determined
+    # by this criterion).
+    delta_at_1 = sum(values(poly))
+    flip = if delta_at_1 != 0
+        delta_at_1 < 0
+    else
+        poly[maximum(keys(poly))] < 0
+    end
+    if flip
         for e in keys(poly)
             poly[e] = -poly[e]
         end

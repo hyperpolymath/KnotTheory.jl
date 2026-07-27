@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Owner: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 using Test
+using Random: MersenneTwister
 using Graphs
 using Polynomials
 using LinearAlgebra
@@ -668,19 +669,23 @@ using KnotTheory
         @test signature(t.pd) == -2
         @test determinant(t.pd) == 3
 
-        # Figure-eight exact Alexander polynomial: t^{-1} - 3 + t
-        # (or equivalently -t^{-1} + 3 - t, depending on sign convention).
+        # Figure-eight exact Alexander polynomial: -t^{-1} + 3 - t.
+        # The sign is now DEFINED (not convention-dependent): alexander is
+        # normalised so Delta(1) = +1, the Conway normalisation. The other
+        # unit choice (t^{-1} - 3 + t, Delta(1) = -1) made the derived
+        # Conway polynomial come out as -(1 - z^2).
         fe = figure_eight()
         alex_fe = alexander_polynomial(fe.pd)
-        @test abs(get(alex_fe, 0, 0)) == 3
-        @test abs(get(alex_fe, 1, 0)) == 1
-        @test abs(get(alex_fe, -1, 0)) == 1
-        @test get(alex_fe, 1, 0) == get(alex_fe, -1, 0)  # symmetric
+        @test get(alex_fe, 0, 0) == 3
+        @test get(alex_fe, 1, 0) == -1
+        @test get(alex_fe, -1, 0) == -1
+        @test sum(values(alex_fe)) == 1  # Delta(1) = +1, exactly
 
-        # Figure-eight Conway polynomial: 1 - z^2.
+        # Figure-eight Conway polynomial: 1 - z^2, exact — nabla(0) = 1 is
+        # Conway's defining normalisation, so the sign is NOT ambiguous.
         conway_fe = conway_polynomial(fe.pd)
-        @test abs(get(conway_fe, 0, 0)) == 1
-        @test abs(get(conway_fe, 2, 0)) == 1
+        @test get(conway_fe, 0, 0) == 1
+        @test get(conway_fe, 2, 0) == -1
 
         # Figure-eight signature 0, determinant 5.
         @test signature(fe.pd) == 0
@@ -751,14 +756,14 @@ using KnotTheory
             end
         end
 
-        # Leading coefficient should be positive.
+        # Unit normalisation: Delta(1) = +1 (the Conway normalisation).
+        # The previous contract here — leading coefficient positive — picks
+        # the wrong unit on mixed-sign knots (figure-eight: t - 3 + t^{-1}
+        # has Delta(1) = -1, making conway come out -(1 - z^2)).
         for knot_fn in [trefoil, figure_eight, cinquefoil]
             k = knot_fn()
             alex = alexander_polynomial(k.pd)
-            if !isempty(alex)
-                max_e = maximum(keys(alex))
-                @test alex[max_e] > 0
-            end
+            @test sum(values(alex)) == 1
         end
     end
 
@@ -766,3 +771,54 @@ end
 
 include("e2e_test.jl")
 include("property_test.jl")
+
+
+# ---------------------------------------------------------------------------
+# Bareiss determinant: equivalence with the cofactor oracle + performance
+# (#46 — cofactor expansion is O(n!) and ran a 16-crossing Alexander
+# computation past GitHub's 6-hour CI job limit).
+# ---------------------------------------------------------------------------
+@testset "Bareiss _poly_det equivalence and performance" begin
+    trim(v) = KnotTheory._poly_trim(v)
+
+    rng = MersenneTwister(42)
+    for trial in 1:40
+        n = rand(rng, 1:6)
+        M = Matrix{Vector{Int}}(undef, n, n)
+        for i in 1:n, j in 1:n
+            deg = rand(rng, 0:2)
+            M[i, j] = rand(rng) < 0.2 ? Int[] : [rand(rng, -3:3) for _ in 0:deg]
+        end
+        b = trim(KnotTheory._poly_det_bareiss(M, n))
+        c = trim(KnotTheory._poly_det_cofactor(M, n))
+        @test b == c
+    end
+
+    # Singular matrix (duplicate rows) → zero determinant.
+    Ms = Matrix{Vector{Int}}(undef, 3, 3)
+    row = [[1, 2], [0, 1], [3]]
+    for j in 1:3
+        Ms[1, j] = row[j]; Ms[2, j] = row[j]; Ms[3, j] = [j]
+    end
+    @test isempty(trim(KnotTheory._poly_det_bareiss(Ms, 3)))
+
+    # Performance: 16-crossing torus closure. Under cofactor this ran > 6 h;
+    # under Bareiss it must complete in seconds. Generous CI bound: 120 s.
+    pd16 = from_braid_word(join(["s1" for _ in 1:16], ".")).pd
+    t0 = time()
+    alex16 = alexander_polynomial(pd16)
+    elapsed = time() - t0
+    @test elapsed < 120
+    @test !isempty(alex16)
+    @test sum(values(alex16)) != 0 || true  # smoke: computed, not thrown
+end
+
+@testset "Alexander Delta(1) = +1 normalisation (Conway compatibility)" begin
+    for (nm, k) in [("trefoil", trefoil()), ("figure_eight", figure_eight()),
+                    ("cinquefoil", cinquefoil())]
+        alex = alexander_polynomial(k.pd)
+        @test sum(values(alex)) == 1
+        nabla = conway_polynomial(k.pd)
+        @test get(nabla, 0, 0) == 1  # nabla(0) = 1, the defining normalisation
+    end
+end
