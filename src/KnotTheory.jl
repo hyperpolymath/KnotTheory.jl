@@ -1496,10 +1496,24 @@ function alexander_polynomial(pd::PlanarDiagram)
         return Dict(0 => 1)
     end
 
-    # Normalize: shift exponents so the polynomial is centered (symmetric).
+    # Canonicalise the exponent window. Delta is only defined up to +-t^k, and
+    # which representative the determinant produces depends on the ROW order of
+    # the Alexander matrix — i.e. on the order the crossings happen to be listed
+    # in. Pin it: shift so that min_exp + max_exp is 0 (even span) or 1 (odd
+    # span), the unique integer shift that centres the window as nearly as an
+    # integer shift can.
+    #
+    # The old rule, center_shift = -div(min_e + max_e, 2), silently failed for
+    # ODD spans: `div` truncates toward zero, so an odd sum could not be
+    # centred and the polynomial was left off-centre by an order-dependent
+    # amount. Odd span is exactly the even-component-LINK case (the centre is a
+    # half-integer there), which is why knots were unaffected and links were
+    # not (#51).
     min_e = minimum(keys(poly))
     max_e = maximum(keys(poly))
-    center_shift = -div(min_e + max_e, 2)
+    span = max_e - min_e
+    target_sum = isodd(span) ? 1 : 0
+    center_shift = div(target_sum - (min_e + max_e), 2)
 
     if center_shift != 0
         shifted = Dict{Int, Int}()
@@ -1522,6 +1536,10 @@ function alexander_polynomial(pd::PlanarDiagram)
     flip = if delta_at_1 != 0
         delta_at_1 < 0
     else
+        # Links: Delta(1) = 0 cannot decide the unit, and the determinant's
+        # sign flips with row order. Pin it on the leading (highest-exponent)
+        # coefficient, which the canonical window above makes well defined.
+        # Chosen so the positive Hopf link comes out with Conway nabla = +z.
         poly[maximum(keys(poly))] < 0
     end
     if flip
@@ -1595,6 +1613,58 @@ end
 # ---------------------------------------------------------------------------
 
 """
+    _conway_from_antisymmetric(alex::Dict{Int,Int}) -> Dict{Int, Int}
+
+Conway polynomial for the odd-span (even-component link) case.
+
+`alexander_polynomial` canonicalises the exponent window so an odd span has
+`min_exp + max_exp == 1`. Substituting `u = t^(1/2)` (exponent `k` becomes
+`2k`) and shifting by `-1` maps that window onto odd exponents symmetric
+about 0, with `P(1/u) = -P(u)`:
+
+    P(u) = sum_{m odd > 0} c_m * (u^m - u^-m),   c_m = alex[(m + 1) / 2]
+
+With `z = u - u^-1` and `w = u^2 + u^-2 = z^2 + 2`, write
+`D_m = u^m - u^-m`. Then `D_1 = z`, `D_3 = z * (w + 1)`, and
+`D_m = w * D_(m-2) - D_(m-4)` for odd `m >= 5`, since
+
+    (u^2 + u^-2)(u^(m-2) - u^-(m-2)) = (u^m - u^-m) + (u^(m-4) - u^-(m-4))
+
+so `nabla(z) = sum_{m odd > 0} c_m * D_m(z)`, which carries only odd powers
+of z as required.
+"""
+function _conway_from_antisymmetric(alex::Dict{Int, Int})::Dict{Int, Int}
+    max_e = maximum(keys(alex))
+    # Highest odd u-exponent present: k = max_e maps to m = 2 * max_e - 1.
+    m_max = 2 * max_e - 1
+    m_max < 1 && return Dict(0 => 0)
+
+    w = [2, 0, 1]                      # w = z^2 + 2, as coefficients in z
+    D = Dict{Int, Vector{Int}}()
+    D[1] = [0, 1]                      # D_1 = z
+    if m_max >= 3
+        D[3] = _poly_mul(D[1], [3, 0, 1])   # D_3 = z * (w + 1) = z * (z^2 + 3)
+    end
+    for m in 5:2:m_max
+        D[m] = _poly_sub(_poly_mul(w, D[m - 2]), D[m - 4])
+    end
+
+    nabla = Int[]
+    for m in 1:2:m_max
+        k = div(m + 1, 2)              # inverse of m = 2k - 1
+        c = get(alex, k, 0)
+        c == 0 && continue
+        nabla = _poly_add(nabla, [c * x for x in D[m]])
+    end
+
+    result = Dict{Int, Int}()
+    for (i, c) in enumerate(nabla)
+        c != 0 && (result[i - 1] = c)
+    end
+    isempty(result) ? Dict(0 => 0) : result
+end
+
+"""
     conway_polynomial(pd::PlanarDiagram) -> Dict{Int, Int}
 
 Compute the Conway polynomial nabla(z) from the Alexander polynomial.
@@ -1614,6 +1684,17 @@ function conway_polynomial(pd::PlanarDiagram)
 
     if isempty(alex)
         return Dict(0 => 1)
+    end
+
+    # An n-component link has nabla in z^(n-1) * Z[z^2] — so EVEN-component
+    # links carry only ODD powers of z, which the symmetric expansion below
+    # cannot produce (it emits even powers only). Those are exactly the
+    # odd-span diagrams: Delta's centre is a half-integer, so substituting
+    # u = t^(1/2) gives an ANTI-symmetric Laurent polynomial in u with odd
+    # exponents. Handle them separately (#51 — previously the Hopf link came
+    # out as 1 + z^2 instead of z).
+    if isodd(maximum(keys(alex)) - minimum(keys(alex)))
+        return _conway_from_antisymmetric(alex)
     end
 
     # The Conway polynomial is related to the Alexander polynomial by:
