@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Owner: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 using Test
-using Random: MersenneTwister
+using Random: MersenneTwister, shuffle
 using Graphs
 using Polynomials
 using LinearAlgebra
@@ -820,5 +820,56 @@ end
         @test sum(values(alex)) == 1
         nabla = conway_polynomial(k.pd)
         @test get(nabla, 0, 0) == 1  # nabla(0) = 1, the defining normalisation
+    end
+end
+
+# ---------------------------------------------------------------------------
+# Multi-component LINKS (#51). The suite previously exercised knots only,
+# which is exactly why the link path could return structurally impossible
+# answers unnoticed: an n-component link has nabla in z^(n-1) * Z[z^2], so
+# even-component links carry ODD powers of z — but the symmetric expansion
+# emitted even powers always, and the Hopf link came out as 1 + z^2 instead
+# of z.
+# ---------------------------------------------------------------------------
+@testset "Links: Conway parity, known values, and crossing-order invariance" begin
+    ser(p) = isempty(p) ? "" :
+        join([string(k) * ":" * string(p[k]) for k in sort(collect(keys(p)))], ",")
+
+    # Hopf link: closure of s1^2 on two strands. nabla = z, exactly.
+    hopf = from_braid_word("s1.s1").pd
+    @test conway_polynomial(hopf) == Dict(1 => 1)
+    # Delta(1) = 0 identifies a link (for a knot it is +-1).
+    @test sum(values(alexander_polynomial(hopf))) == 0
+
+    # Three-component chain: odd component count => even powers of z.
+    chain = from_braid_word("s1.s1.s2.s2").pd
+    @test conway_polynomial(chain) == Dict(2 => 1)
+
+    # Parity law: nabla's exponents are all odd for even-component links and
+    # all even otherwise. Span parity of Delta distinguishes the two cases.
+    for word in ["s1.s1", "s1.s1.s1.s1", "s1.s1.s2.s2", "s1.S1.s1.s1",
+                 "s1.s2.s1.s2", "s1.s1.s1", "s1.s2.S1.s2"]
+        pd = from_braid_word(word).pd
+        alex = alexander_polynomial(pd)
+        isempty(alex) && continue
+        span_odd = isodd(maximum(keys(alex)) - minimum(keys(alex)))
+        for e in keys(conway_polynomial(pd))
+            @test isodd(e) == span_odd
+        end
+    end
+
+    # Crossing-order invariance ON LINKS. Reordering a diagram's crossing list
+    # does not change the link, so every invariant must be unchanged. This is
+    # the property #51 broke: Delta's exponent window and the determinant sign
+    # both moved with row order, and conway inherited both.
+    rng = MersenneTwister(0xBEAD42)
+    for _ in 1:60
+        nstrands = rand(rng, 3:4)
+        word = join([(rand(rng, Bool) ? "s" : "S") *
+                     string(rand(rng, 1:(nstrands - 1))) for _ in 1:rand(rng, 4:12)], ".")
+        pd = from_braid_word(word).pd
+        shuffled = PlanarDiagram(shuffle(rng, copy(pd.crossings)), pd.components)
+        @test ser(alexander_polynomial(pd)) == ser(alexander_polynomial(shuffled))
+        @test ser(conway_polynomial(pd)) == ser(conway_polynomial(shuffled))
     end
 end
