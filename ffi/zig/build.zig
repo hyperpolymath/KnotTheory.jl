@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-// {{PROJECT}} FFI Build Configuration
+// KNOTTHEORY_JL FFI Build Configuration
 // SPDX-License-Identifier: MPL-2.0
 
 const std = @import("std");
