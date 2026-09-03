@@ -3,13 +3,6 @@
 # Docs: https://gh.io/actions-lockfile
 version: 'v0.0.2'
 workflows:
-    '.github/workflows/governance.yml': []
-    '.github/workflows/hypatia-scan.yml': []
-    '.github/workflows/label-triage.yml': []
-    '.github/workflows/labels.yml': []
-    '.github/workflows/mirror.yml': []
-    '.github/workflows/scorecard.yml': []
-    '.github/workflows/secret-scanner.yml': []
     '.github/workflows/boj-build.yml':
         - 'actions/checkout@v6.0.2'
     '.github/workflows/casket-pages.yml':
@@ -29,12 +22,17 @@ workflows:
         - 'actions/checkout@v4.3.1'
         - 'hyperpolymath/a2ml-ecosystem@main'
         - 'hyperpolymath/k9-ecosystem@main'
+    '.github/workflows/governance.yml': []
     '.github/workflows/guix-nix-policy.yml':
         - 'actions/checkout@v6.0.2'
+    '.github/workflows/hypatia-scan.yml': []
     '.github/workflows/instant-sync.yml':
         - 'peter-evans/repository-dispatch@v4.0.1'
+    '.github/workflows/label-triage.yml': []
+    '.github/workflows/labels.yml': []
+    '.github/workflows/mirror.yml': []
     '.github/workflows/push-email-notify.yml':
-        - 'dawidd6/action-send-mail@v3.12.0'
+        - 'hyperpolymath/smtp-notify-action@v0.2.0'
     '.github/workflows/quality.yml':
         - 'actions/checkout@v6.0.2'
         - 'editorconfig-checker/action-editorconfig-checker@v2.1.0'
@@ -50,6 +48,8 @@ workflows:
         - 'actions/checkout@v6.0.2'
     '.github/workflows/runtime-policy.yml':
         - 'actions/checkout@v6.0.2'
+    '.github/workflows/scorecard.yml': []
+    '.github/workflows/secret-scanner.yml': []
     '.github/workflows/security-policy.yml':
         - 'actions/checkout@v6.0.2'
     '.github/workflows/wellknown-enforcement.yml':
@@ -127,11 +127,6 @@ dependencies:
         repo_id: 496012378
         uses:
             - 'actions/upload-artifact@v4'
-    'dawidd6/action-send-mail@v3.12.0':
-        ref: 'v3.12.0'
-        commit: 'sha1-6e502825a508b867ab2954ad6343b68787624c01'
-        owner_id: 9713907
-        repo_id: 222439721
     'editorconfig-checker/action-editorconfig-checker@v2.1.0':
         ref: 'v2.1.0'
         commit: 'sha1-4b6cd6190d435e7e084fb35e36a096e98506f7b9'
@@ -157,6 +152,11 @@ dependencies:
         commit: 'sha1-89f3c2702f4f650a92aa7411502f38da06abd562'
         owner_id: 6759885
         repo_id: 1275650185
+    'hyperpolymath/smtp-notify-action@v0.2.0':
+        ref: 'v0.2.0'
+        commit: 'sha1-ede1191ef6ff3ac02c4f4d9efdf837ee517e11d7'
+        owner_id: 6759885
+        repo_id: 1352485172
     'julia-actions/cache@v3.1.0':
         ref: 'v3.1.0'
         commit: 'sha1-a45e8fa8be21c18a06b7177052533149e61e9b38'
