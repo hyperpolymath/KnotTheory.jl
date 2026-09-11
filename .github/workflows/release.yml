@@ -10,7 +10,7 @@ on:
         description: 'Version to release (e.g., v0.1.0)'
         required: true
 permissions:
-  contents: write
+  contents: read
   id-token: write
 jobs:
   build:
