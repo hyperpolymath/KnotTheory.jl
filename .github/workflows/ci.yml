@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
+# This workflow is managed by gh actions-lock.
 name: CI
 on:
   push:
@@ -11,8 +12,8 @@ jobs:
       matrix:
         julia-version: ['1.10', '1.11']
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-      - uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32 # v3.0.2
+      - uses: actions/checkout@v6.0.2
+      - uses: julia-actions/setup-julia@v3.0.2
         with:
           version: ${{ matrix.julia-version }}
       # KnotTheory depends on the unregistered estate package AcceleratorGate.jl
