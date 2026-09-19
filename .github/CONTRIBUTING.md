@@ -58,7 +58,7 @@ flake (Perimeter 1) └── Justfile \# Task runner (Perimeter 1)
     ### Suggesting Features
 
     **Before suggesting**:
-    1. Check the [roadmap](ROADMAP.adoc) if available
+    1. Check the [roadmap](../ROADMAP.adoc) if available
     2. Search existing issues and discussions
     3. Consider which perimeter the feature belongs to
 
