@@ -771,6 +771,7 @@ end
 
 include("e2e_test.jl")
 include("property_test.jl")
+include("polynomial_order_test.jl")
 
 
 # ---------------------------------------------------------------------------
