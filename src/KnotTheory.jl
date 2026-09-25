@@ -1367,13 +1367,21 @@ end
 """
     alexander_polynomial(pd::PlanarDiagram) -> Dict{Int, Int}
 
-Compute the Alexander polynomial Delta(t) of a knot from its planar diagram
-using the Fox calculus on the Wirtinger presentation.
+Compute the Alexander polynomial Delta(t) of a knot or link from its planar
+diagram using the Fox calculus on the Wirtinger presentation.
 
-The result is returned as a Dict mapping exponent => coefficient, and is
-normalized so that:
-- The polynomial is symmetric: Delta(t) = Delta(1/t)
-- The leading (highest degree) coefficient is positive
+The result is returned as a Dict mapping exponent => coefficient, with a
+canonical choice of the unit factor ±t^k:
+- The exponent window is centred: minimum and maximum exponents sum to 0
+  for even span, or 1 for odd span (the half-integer-centred link case).
+- For knots, Delta(t) = Delta(1/t) and Delta(1) = +1. The leading coefficient
+  need not be positive (for example, the figure-eight knot).
+- When Delta(1) = 0, the leading (highest degree) coefficient is positive.
+  This fixes a link sign convention; it does not recover oriented linking signs.
+
+This representative is independent of the order of `pd.crossings`. Shifting
+the lowest degree to zero instead would break the centred convention used by
+[`conway_polynomial`](@ref).
 
 # Known Values
 - Unknot:       Delta(t) = 1                        => {0 => 1}
@@ -1387,7 +1395,7 @@ normalized so that:
    - Negative crossing: gen(a) gets +1, gen(c) gets -t^{-1}, gen(over) gets t^{-1}-1
 3. Build the n x n Alexander matrix (n = number of crossings = number of generators)
 4. Delete one row and one column, compute the (n-1) x (n-1) determinant
-5. Normalize: shift exponents for symmetry, ensure positive leading coefficient
+5. Normalize: centre the exponent window and fix the sign as described above
 """
 function alexander_polynomial(pd::PlanarDiagram)
     n = length(pd.crossings)
@@ -1930,30 +1938,21 @@ const MAX_CROSSINGS_FOR_HOMFLY = 15
 """
     homfly_polynomial(pd::PlanarDiagram) -> Dict{Tuple{Int,Int}, Int}
 
-Compute the HOMFLY-PT polynomial P(a, z) via the skein relation:
+Return a HOMFLY-shaped Dict mapping `(a_exponent, z_exponent) => coefficient`.
 
-    a * P(L+) - a^{-1} * P(L-) = z * P(L0)
+!!! warning "Partial implementation"
+    The current implementation embeds the canonical Alexander coefficients
+    using `(0, 2 * abs(exponent))` as keys, combining equal keys. It does not
+    compute the full HOMFLY-PT polynomial or its exact Conway specialization.
+    In particular, it does not implement the HOMFLY skein relation
+    `a * P(L+) - a^(-1) * P(L-) = z * P(L0)`.
 
-Returns a Dict mapping `(a_exponent, z_exponent) => coefficient`.
+The output inherits crossing-order independence from [`alexander_polynomial`](@ref).
+It needs no separate exponent-shift normalization. This order-independence
+property must not be confused with correctness as a full HOMFLY invariant.
 
-The HOMFLY-PT polynomial is a two-variable generalization that subsumes
-both the Alexander and Jones polynomials:
-- Alexander: P(1, z) ~ Delta(z)
-- Jones:     P(t, t^{1/2} - t^{-1/2}) ~ V(t)
-
-# Algorithm
-Uses the state-sum approach derived from the Kauffman bracket, extended
-to two variables. Each crossing is resolved by both smoothing operations
-(A-smoothing and B-smoothing), similar to the Kauffman bracket computation
-but tracking two variables (a, z) instead of one.
-
-For each of the 2^n states, the contribution depends on the number of
-resulting loops and the specific smoothings chosen.
-
-WARNING: Exponential time complexity O(2^n). Limited to n <= $MAX_CROSSINGS_FOR_HOMFLY.
-
-# Known Values
-- Unknot: P(a,z) = 1
+Inputs remain limited to n <= $MAX_CROSSINGS_FOR_HOMFLY crossings.
+The unknot returns `Dict((0, 0) => 1)`.
 """
 function homfly_polynomial(pd::PlanarDiagram)
     n = length(pd.crossings)
